@@ -47,30 +47,28 @@ namespace theia {
 // hashing approach. This hashing does not require any training and is extremely
 // efficient but can only be used with float features like SIFT.
 class CascadeHashingFeatureMatcher : public FeatureMatcher<L2> {
- public:
-  CascadeHashingFeatureMatcher() {}
-  ~CascadeHashingFeatureMatcher() {}
+public:
+    CascadeHashingFeatureMatcher() {}
+    ~CascadeHashingFeatureMatcher() {}
 
-  // These methods are the same as the base class except that the HashedImage is
-  // created as the descriptors are added.
-  void AddImage(const std::vector<Keypoint>* keypoints,
-                const std::vector<Eigen::VectorXf>* descriptors) override;
-  void AddImage(const std::vector<Keypoint>* keypoints,
-                const std::vector<Eigen::VectorXf>* descriptors,
-                const CameraIntrinsicsPrior& intrinsics) override;
+    // These methods are the same as the base class except that the HashedImage is
+    // created as the descriptors are added.
+    void AddImage(const std::vector<Keypoint>* keypoints,
+        const std::vector<Eigen::VectorXf>* descriptors) override;
+    void AddImage(const std::vector<Keypoint>* keypoints,
+        const std::vector<Eigen::VectorXf>* descriptors,
+        const CameraIntrinsicsPrior& intrinsics) override;
 
- private:
-  bool MatchImagePair(
-      const int image1_index,
-      const int image2_index,
-      std::vector<FeatureCorrespondence>* matched_features) override;
+    bool MatchImagePair(const int image1_index, const int image2_index,
+        std::vector<FeatureCorrespondence>* matched_features) override;
 
-  std::vector<HashedImage> hashed_images_;
-  std::unique_ptr<CascadeHasher> cascade_hasher_;
+private:
+    std::vector<HashedImage> hashed_images_;
+    std::unique_ptr<CascadeHasher> cascade_hasher_;
 
-  DISALLOW_COPY_AND_ASSIGN(CascadeHashingFeatureMatcher);
+    DISALLOW_COPY_AND_ASSIGN(CascadeHashingFeatureMatcher);
 };
 
-}  // namespace theia
+} // namespace theia
 
-#endif  // THEIA_MATCHING_CASCADE_HASHING_FEATURE_MATCHER_H_
+#endif // THEIA_MATCHING_CASCADE_HASHING_FEATURE_MATCHER_H_
