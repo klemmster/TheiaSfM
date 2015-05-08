@@ -30,7 +30,7 @@
 // POSSIBILITY OF SUCH DAMAGE.
 //
 // Please contact the author of this library if you have any questions.
-// Author: Chris Sweeney (cmsweeney@cs.ucsb.edu)
+// Author Chris Sweeney (cmsweeney@cs.ucsb.edu)
 
 #include "theia/sfm/estimators/estimate_fundamental_matrix.h"
 
@@ -38,75 +38,23 @@
 #include <vector>
 
 #include "theia/matching/feature_correspondence.h"
-#include "theia/sfm/pose/eight_point_fundamental_matrix.h"
-#include "theia/sfm/pose/util.h"
 #include "theia/solvers/estimator.h"
-#include "theia/util/util.h"
 
 namespace theia {
-namespace {
 
-// An estimator for computing the fundamental matrix from 6 feature
-// correspondences. The feature correspondences should be in pixel coordinates.
-class FundamentalMatrixEstimator
-    : public Estimator<FeatureCorrespondence, Eigen::Matrix3d> {
- public:
-  FundamentalMatrixEstimator() {}
-
-  // 8 correspondences are needed to determine an fundamental matrix.
-  double SampleSize() const { return 8; }
-
-  // Estimates candidate fundamental matrices from correspondences.
-  bool EstimateModel(const std::vector<FeatureCorrespondence>& correspondences,
-                     std::vector<Eigen::Matrix3d>* fundamental_matrices) const {
-    std::vector<Eigen::Vector2d> image1_points, image2_points;
-    for (int i = 0; i < 8; i++) {
-      image1_points.emplace_back(correspondences[i].feature1);
-      image2_points.emplace_back(correspondences[i].feature2);
-    }
-
-    Eigen::Matrix3d fmatrix;
-    if (!NormalizedEightPointFundamentalMatrix(
-            image1_points, image2_points, &fmatrix)) {
-      return false;
-    }
-
-    fundamental_matrices->emplace_back(fmatrix);
-    return true;
-  }
-
-  // The error for a correspondences given a model. This is the squared sampson
-  // error.
-  double Error(const FeatureCorrespondence& correspondence,
-               const Eigen::Matrix3d& fundamental_matrix) const {
-    return SquaredSampsonDistance(fundamental_matrix,
-                                  correspondence.feature1,
-                                  correspondence.feature2);
-  }
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(FundamentalMatrixEstimator);
-};
-
-}  // namespace
-
-bool EstimateFundamentalMatrix(
-    const RansacParameters& ransac_params,
+bool EstimateFundamentalMatrix(const RansacParameters& ransac_params,
     const RansacType& ransac_type,
     const std::vector<FeatureCorrespondence>& normalized_correspondences,
-    Eigen::Matrix3d* fundamental_matrix,
-    RansacSummary* ransac_summary) {
-  FundamentalMatrixEstimator fundamental_matrix_estimator;
-  std::unique_ptr<SampleConsensusEstimator<FundamentalMatrixEstimator> >
-      ransac = CreateAndInitializeRansacVariant(ransac_type,
-                                                ransac_params,
-                                                fundamental_matrix_estimator);
+    Eigen::Matrix3d* fundamental_matrix, RansacSummary* ransac_summary)
+{
+    FundamentalMatrixEstimator fundamental_matrix_estimator;
+    std::unique_ptr<SampleConsensusEstimator<FundamentalMatrixEstimator> > ransac
+        = CreateAndInitializeRansacVariant(
+            ransac_type, ransac_params, fundamental_matrix_estimator);
 
-  // Estimate essential matrix.
-  return ransac->Estimate(normalized_correspondences,
-                          fundamental_matrix,
-                          ransac_summary);
+    // Estimate essential matrix.
+    return ransac->Estimate(
+        normalized_correspondences, fundamental_matrix, ransac_summary);
 }
 
-
-}  // namespace theia
+} // namespace theia

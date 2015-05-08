@@ -40,21 +40,65 @@
 
 #include "theia/matching/feature_correspondence.h"
 #include "theia/sfm/create_and_initialize_ransac_variant.h"
+#include "theia/sfm/pose/eight_point_fundamental_matrix.h"
+#include "theia/sfm/pose/util.h"
 #include "theia/solvers/estimator.h"
+#include "theia/util/util.h"
 
 namespace theia {
+
+// An estimator for computing the fundamental matrix from 6 feature
+// correspondences. The feature correspondences should be in pixel coordinates.
+class FundamentalMatrixEstimator
+    : public Estimator<FeatureCorrespondence, Eigen::Matrix3d> {
+public:
+    FundamentalMatrixEstimator() {}
+
+    // 8 correspondences are needed to determine an fundamental matrix.
+    double SampleSize() const { return 8; }
+
+    // Estimates candidate fundamental matrices from correspondences.
+    bool EstimateModel(const std::vector<FeatureCorrespondence>& correspondences,
+        std::vector<Eigen::Matrix3d>* fundamental_matrices) const
+    {
+        std::vector<Eigen::Vector2d> image1_points, image2_points;
+        for (int i = 0; i < 8; i++) {
+            image1_points.emplace_back(correspondences[i].feature1);
+            image2_points.emplace_back(correspondences[i].feature2);
+        }
+
+        Eigen::Matrix3d fmatrix;
+        if (!NormalizedEightPointFundamentalMatrix(
+                image1_points, image2_points, &fmatrix)) {
+            return false;
+        }
+
+        fundamental_matrices->emplace_back(fmatrix);
+        return true;
+    }
+
+    // The error for a correspondences given a model. This is the squared sampson
+    // error.
+    double Error(const FeatureCorrespondence& correspondence,
+        const Eigen::Matrix3d& fundamental_matrix) const
+    {
+        return SquaredSampsonDistance(
+            fundamental_matrix, correspondence.feature1, correspondence.feature2);
+    }
+
+private:
+    DISALLOW_COPY_AND_ASSIGN(FundamentalMatrixEstimator);
+};
 
 // Estimates the essential matrix from feature correspondences using the 5-pt
 // algorithm. The feature correspondences must be normalized such that the
 // principal point and focal length has been removed. Returns true if a pose
 // could be successfully estimated and false otherwise.
-bool EstimateFundamentalMatrix(
-    const RansacParameters& ransac_params,
+bool EstimateFundamentalMatrix(const RansacParameters& ransac_params,
     const RansacType& ransac_type,
     const std::vector<FeatureCorrespondence>& normalized_correspondences,
-    Eigen::Matrix3d* essential_matrix,
-    RansacSummary* ransac_summary);
+    Eigen::Matrix3d* essential_matrix, RansacSummary* ransac_summary);
 
-}  // namespace theia
+} // namespace theia
 
-#endif  // THEIA_SFM_ESTIMATORS_ESTIMATE_FUNDAMENTAL_MATRIX_H_
+#endif // THEIA_SFM_ESTIMATORS_ESTIMATE_FUNDAMENTAL_MATRIX_H_
