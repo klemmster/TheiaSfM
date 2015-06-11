@@ -97,12 +97,15 @@ bool SiftDetector::DetectKeypoints(const FloatImage& image,
       if (sift_params_.upright_sift && num_angles > 1) {
         num_angles = 1;
       }
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Warray-bounds"
       for (int j = 0; j < num_angles; j++) {
         Keypoint keypoint(vl_keypoints[i].x, vl_keypoints[i].y, Keypoint::SIFT);
         keypoint.set_scale(vl_keypoints[i].sigma);
         keypoint.set_orientation(angles[j]);
         keypoints->push_back(keypoint);
       }
+#pragma GCC diagnostic pop
     }
     // Attempt to process the next octave.
     vl_status = vl_sift_process_next_octave(sift_filter_);
