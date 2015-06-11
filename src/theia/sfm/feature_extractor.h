@@ -105,10 +105,13 @@ class FeatureExtractor {
 
 // ---------------------- Implementation ------------------------- //
 template <typename DescriptorType>
-bool FeatureExtractor::Extract(
+inline bool FeatureExtractor::Extract(
     const std::vector<std::string>& filenames,
     std::vector<std::vector<Keypoint> >* keypoints,
     std::vector<std::vector<DescriptorType> >* descriptors) {
+  CHECK_GT(filenames.size(), 0) << "FeatureExtractor::Extract requires at "
+                                   "least one image in order to extract "
+                                   "features.";
   CHECK_NOTNULL(keypoints)->resize(filenames.size());
   CHECK_NOTNULL(descriptors)->resize(filenames.size());
 
@@ -134,7 +137,7 @@ bool FeatureExtractor::Extract(
 }
 
 template <typename DescriptorType>
-bool FeatureExtractor::ExtractFeatures(
+inline bool FeatureExtractor::ExtractFeatures(
     const std::string& filename,
     std::vector<Keypoint>* keypoints,
     std::vector<DescriptorType>* descriptors) {

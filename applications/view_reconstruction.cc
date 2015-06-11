@@ -66,18 +66,28 @@ std::vector<int> num_views_for_track;
 // Parameters for OpenGL.
 int width = 1200;
 int height = 800;
-int mouse_down_x[3], mouse_down_y[3];
-float rot_x = 0.0f, rot_y = 0.0f;
-float prev_x, prev_y;
-float distance = 1.0;
-Eigen::Vector3d origin = Eigen::Vector3d::Zero();
-bool mouse_rotates = false, mouse_moves = false;
 
+// OpenGL camera parameters.
+Eigen::Vector3f viewer_position(0.0, 0.0, 0.0);
+float zoom = -50.0;
+float delta_zoom = 25;
+
+// Rotation values for the navigation
+Eigen::Vector2f navigation_rotation(0.0, 0.0);
+
+// Position of the mouse when pressed
+int mouse_pressed_x = 0, mouse_pressed_y = 0;
+float last_x_offset = 0.0, last_y_offset = 0.0;
+// Mouse button states
+int left_mouse_button_active = 0, right_mouse_button_active = 0;
+
+// Visualization parameters.
 bool draw_cameras = true;
 bool draw_axes = false;
 float point_size = 1.0;
 float normalized_focal_length = 1.0;
 int min_num_views_for_track = 3;
+double anti_aliasing_blend = 0.01;
 
 void GetPerspectiveParams(double* aspect_ratio, double* fovy) {
   double focal_length = 800.0;
@@ -148,24 +158,25 @@ void DrawCamera(const theia::Camera& camera) {
 
   // Create the camera wireframe. If intrinsic parameters are not set then use
   // the focal length as a guess.
+  const float image_width =
+      (camera.ImageWidth() == 0) ? camera.FocalLength() : camera.ImageWidth();
+  const float image_height =
+      (camera.ImageHeight() == 0) ? camera.FocalLength() : camera.ImageHeight();
+  const float normalized_width = (image_width / 2.0) / camera.FocalLength();
+  const float normalized_height = (image_height / 2.0) / camera.FocalLength();
 
-  const double normalized_width =
-      (camera.ImageWidth() / 2.0) / camera.FocalLength();
-  const double normalized_height =
-      (camera.ImageHeight() / 2.0) / camera.FocalLength();
-
-  const Eigen::Vector3d top_left =
+  const Eigen::Vector3f top_left =
       normalized_focal_length *
-      Eigen::Vector3d(-normalized_width, -normalized_height, 1);
-  const Eigen::Vector3d top_right =
+      Eigen::Vector3f(-normalized_width, -normalized_height, 1);
+  const Eigen::Vector3f top_right =
       normalized_focal_length *
-      Eigen::Vector3d(normalized_width, -normalized_height, 1);
-  const Eigen::Vector3d bottom_right =
+      Eigen::Vector3f(normalized_width, -normalized_height, 1);
+  const Eigen::Vector3f bottom_right =
       normalized_focal_length *
-      Eigen::Vector3d(normalized_width, normalized_height, 1);
-  const Eigen::Vector3d bottom_left =
+      Eigen::Vector3f(normalized_width, normalized_height, 1);
+  const Eigen::Vector3f bottom_left =
       normalized_focal_length *
-      Eigen::Vector3d(-normalized_width, normalized_height, 1);
+      Eigen::Vector3f(-normalized_width, normalized_height, 1);
 
   glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
   glBegin(GL_TRIANGLE_FAN);
@@ -179,42 +190,39 @@ void DrawCamera(const theia::Camera& camera) {
   glPopMatrix();
 }
 
-void RenderScene() {
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  glMatrixMode(GL_MODELVIEW);
-  glLoadIdentity();
+void DrawPoints(const float point_scale,
+                const float color_scale,
+                const float alpha_scale) {
+  const float default_point_size = point_size;
+  const float default_alpha_scale = anti_aliasing_blend;
 
-  glTranslatef(0.0, 0.0, -10);
+  // TODO(cmsweeney): Render points with the actual 3D point color! This would
+  // require Theia to save the colors during feature extraction.
+  const Eigen::Vector3f default_color(0.05, 0.05, 0.05);
 
-  glRotatef(180.0f + rot_x, 1.0f, 0.0f, 0.0f);
-  glRotatef(-rot_y, 0.0f, 1.0f, 0.0f);
-  if (draw_axes) {
-    DrawAxes(1.0);
-  }
-
-  glScalef(distance, distance, distance);
-
-  glTranslatef(-origin[0], -origin[1], -origin[2]);
-  glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
-
-  // Plot the point cloud.
+  // Enable anti-aliasing for round points and alpha blending that helps make
+  // points look nicer.
   glDisable(GL_LIGHTING);
   glEnable(GL_MULTISAMPLE);
   glEnable(GL_BLEND);
   glEnable(GL_POINT_SMOOTH);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-  glPointSize(point_size);
-
-  // the coordinates for calculating point attenuation:
+  // The coordinates for calculating point attenuation. This allows for points
+  // to get smaller as the OpenGL camera moves farther away.
   GLfloat point_size_coords[3];
   point_size_coords[0] = 1.0f;
   point_size_coords[1] = 0.055f;
   point_size_coords[2] = 0.0f;
   glPointParameterfv(GL_POINT_DISTANCE_ATTENUATION, point_size_coords);
 
-  // Draw the points.
-  glColor3f(0.01, 0.01, 0.01);
+
+  glColor4f(color_scale * default_color[0],
+            color_scale * default_color[1],
+            color_scale * default_color[2],
+            alpha_scale * default_alpha_scale);
+
+  glPointSize(point_scale * default_point_size);
   glBegin(GL_POINTS);
   for (int i = 0; i < world_points.size(); i++) {
     if (num_views_for_track[i] < min_num_views_for_track) {
@@ -223,6 +231,40 @@ void RenderScene() {
     glVertex3d(world_points[i].x(), world_points[i].y(), world_points[i].z());
   }
   glEnd();
+}
+
+void RenderScene() {
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  glMatrixMode(GL_MODELVIEW);
+  glLoadIdentity();
+
+  // Transformation to the viewer origin.
+  glTranslatef(0.0, 0.0, zoom);
+  glRotatef(navigation_rotation[0], 1.0f, 0.0f, 0.0f);
+  glRotatef(navigation_rotation[1], 0.0f, 1.0f, 0.0f);
+  if (draw_axes) {
+    DrawAxes(10.0);
+  }
+
+  // Transformation from the viewer origin to the reconstruction origin.
+  glTranslatef(viewer_position[0], viewer_position[1], viewer_position[2]);
+
+  glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
+
+  // Each 3D point is rendered 3 times with different point sizes, color
+  // intensity, and alpha blending. This allows for a more complete texture-like
+  // rendering of the 3D points. These values were found to experimentally
+  // produce nice visualizations on most scenes.
+  const float small_point_scale = 1.0, medium_point_scale = 5.0,
+              large_point_scale = 10.0;
+  const float small_color_scale = 1.0, medium_color_scale = 1.2,
+              large_color_scale = 1.5;
+  const float small_alpha_scale = 1.0, medium_alpha_scale = 2.1,
+              large_alpha_scale = 3.3;
+
+  DrawPoints(small_point_scale, small_color_scale, small_alpha_scale);
+  DrawPoints(medium_point_scale, medium_color_scale, medium_alpha_scale);
+  DrawPoints(large_point_scale, large_color_scale, large_alpha_scale);
 
   // Draw the cameras.
   if (draw_cameras) {
@@ -235,27 +277,21 @@ void RenderScene() {
 }
 
 void MouseButton(int button, int state, int x, int y) {
-  // button down: save coordinates
-  if (state == GLUT_DOWN && button <= 2) {
-    mouse_down_x[button] = x;
-    mouse_down_y[button] = y;
-    prev_x = x;
-    prev_y = y;
-
-    if (button == GLUT_RIGHT_BUTTON) {
-      mouse_rotates = true;
-    } else if (button == GLUT_LEFT_BUTTON) {
-      mouse_moves = true;
+  // get the mouse buttons
+  if (button == GLUT_RIGHT_BUTTON) {
+    if (state == GLUT_DOWN) {
+      right_mouse_button_active += 1;
+    } else {
+      right_mouse_button_active -= 1;
     }
-    return;
-  }
-
-  if (state == GLUT_UP && button == GLUT_RIGHT_BUTTON) {
-    mouse_rotates = false;
-  }
-
-  if (state == GLUT_UP && button == GLUT_LEFT_BUTTON) {
-    mouse_moves = false;
+  } else if (button == GLUT_LEFT_BUTTON) {
+    if (state == GLUT_DOWN) {
+      left_mouse_button_active += 1;
+      last_x_offset = 0.0;
+      last_y_offset = 0.0;
+    } else {
+      left_mouse_button_active -= 1;
+    }
   }
 
   // scroll event - wheel reports as button 3 (scroll up) and button 4 (scroll
@@ -263,47 +299,74 @@ void MouseButton(int button, int state, int x, int y) {
   if ((button == 3) || (button == 4)) {
     // Each wheel event reports like a button click, GLUT_DOWN then GLUT_UP
     if (state == GLUT_UP) return;  // Disregard redundant GLUT_UP events
-    if (button == 3)
-      distance /= 1.5f;
-    else
-      distance *= 1.5f;
+    if (button == 3) {
+      zoom += delta_zoom;
+    } else {
+      zoom -= delta_zoom;
+    }
   }
+
+  mouse_pressed_x = x;
+  mouse_pressed_y = y;
 }
 
 void MouseMove(int x, int y) {
-  if (mouse_rotates) {
-    const double rotate_factor = 0.5f;
-    // notice x & y difference (i.e., changes in x are to rotate about y-axis)
-    rot_x -= rotate_factor * (y - prev_y);
-    rot_y -= rotate_factor * (x - prev_x);
-    prev_x = x;
-    prev_y = y;
-  } else if (mouse_moves) {
-    const Eigen::Quaterniond inv_rot =
-        Eigen::Quaterniond(Eigen::AngleAxisd(theia::DegToRad(180.f + rot_x),
-                                             Eigen::Vector3d::UnitX()) *
-                           Eigen::AngleAxisd(theia::DegToRad(-rot_y),
-                                             Eigen::Vector3d::UnitY()));
-    origin += inv_rot * Eigen::Vector3d(prev_x - x, y - prev_y, 0);
-    prev_x = x;
-    prev_y = y;
+  float x_offset = 0.0, y_offset = 0.0;
+
+  // Rotation controls
+  if (right_mouse_button_active) {
+    navigation_rotation[0] += ((mouse_pressed_y - y) * 180.0f) / 200.0f;
+    navigation_rotation[1] += ((mouse_pressed_x - x) * 180.0f) / 200.0f;
+
+    mouse_pressed_y = y;
+    mouse_pressed_x = x;
+
+  } else if (left_mouse_button_active) {
+    float delta_x = 0, delta_y = 0;
+    const Eigen::AngleAxisf rotation(
+        Eigen::AngleAxisf(theia::DegToRad(navigation_rotation[0]),
+                          Eigen::Vector3f::UnitX()) *
+        Eigen::AngleAxisf(theia::DegToRad(navigation_rotation[1]),
+                          Eigen::Vector3f::UnitY()));
+
+    // Panning controls.
+    x_offset = (mouse_pressed_x - x);
+    if (last_x_offset != 0.0) {
+      delta_x = -(x_offset - last_x_offset) / 8.0;
+    }
+    last_x_offset = x_offset;
+
+    y_offset = (mouse_pressed_y - y);
+    if (last_y_offset != 0.0) {
+      delta_y = (y_offset - last_y_offset) / 8.0;
+    }
+    last_y_offset = y_offset;
+
+    // Compute the new viewer origin origin.
+    viewer_position +=
+        rotation.inverse() * Eigen::Vector3f(delta_x, delta_y, 0);
   }
 }
 
 void Keyboard(unsigned char key, int x, int y) {
   switch (key) {
     case 'r':  // reset viewpoint
-      distance = 100.0f;
-      rot_x = 0.0f;
-      rot_y = 0.0f;
+      viewer_position.setZero();
+      zoom = -50.0;
+      navigation_rotation.setZero();
+      mouse_pressed_x = 0;
+      mouse_pressed_y = 0;
+      last_x_offset = 0.0;
+      last_y_offset = 0.0;
+      left_mouse_button_active = 0;
+      right_mouse_button_active = 0;
       point_size = 1.0;
-      origin = Eigen::Vector3d::Zero();
       break;
     case 'z':
-      distance /= 1.2f;
+      zoom += delta_zoom;
       break;
     case 'Z':
-      distance *= 1.2f;
+      zoom -= delta_zoom;
       break;
     case 'p':
       point_size /= 1.2;
@@ -328,6 +391,16 @@ void Keyboard(unsigned char key, int x, int y) {
       break;
     case 'T':
       --min_num_views_for_track;
+      break;
+    case 'b':
+      if (anti_aliasing_blend > 0) {
+        anti_aliasing_blend -= 0.01;
+      }
+      break;
+    case 'B':
+      if (anti_aliasing_blend < 1.0) {
+        anti_aliasing_blend += 0.01;
+      }
       break;
   }
 }
