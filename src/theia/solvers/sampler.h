@@ -41,24 +41,27 @@ namespace theia {
 // Purely virtual class used for the sampling consensus methods (e.g. Ransac,
 // Prosac, MLESac, etc.)
 template <class Datum> class Sampler {
- public:
-  explicit Sampler(const int min_num_samples)
-      : min_num_samples_(min_num_samples) {}
+public:
+    explicit Sampler(const int min_num_samples)
+        : min_num_samples_(min_num_samples)
+    {
+    }
 
-  // Initializes any non-trivial variables and sets up sampler if
-  // necessary. Must be called before Sample is called.
-  virtual bool Initialize() = 0;
+    // Initializes any non-trivial variables and sets up sampler if
+    // necessary. Must be called before Sample is called.
+    virtual bool Initialize() = 0;
 
-  virtual ~Sampler() {}
-  // Samples the input variable data and fills the vector subset with the
-  // samples.
-  virtual bool Sample(const std::vector<Datum>& data,
-                      std::vector<Datum>* subset) = 0;
+    virtual ~Sampler() {}
+    // Samples the input variable data and fills the vector subset with the
+    // samples.
+    virtual bool Sample(const std::vector<Datum>& data, std::vector<Datum>* subset) = 0;
 
- protected:
-  int min_num_samples_;
+    virtual void Update(const std::vector<double>& residuals, double inlier_ratio){};
+
+protected:
+    int min_num_samples_;
 };
 
-}  // namespace theia
+} // namespace theia
 
-#endif  // THEIA_SOLVERS_SAMPLER_H_
+#endif // THEIA_SOLVERS_SAMPLER_H_
