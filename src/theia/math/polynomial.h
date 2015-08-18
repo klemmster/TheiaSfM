@@ -82,36 +82,20 @@ namespace theia {
 //
 // and are given by a vector of coefficients of size N + 1.
 
-// Use the companion matrix eigenvalues to determine the roots of the
-// polynomial.
-//
-// This function returns true on success, false otherwise.
-// Failure indicates that the polynomial is invalid (of size 0) or
-// that the eigenvalues of the companion matrix could not be computed.
-// On failure, a more detailed message will be written to LOG(ERROR).
-// If real is not NULL, the real parts of the roots will be returned in it.
-// Likewise, if imaginary is not NULL, imaginary parts will be returned in it.
+// Finds all roots of a polynomial. The real or imaginary output variable may be
+// NULL if the respective output is not desired.
 bool FindPolynomialRoots(const Eigen::VectorXd& polynomial,
-                         Eigen::VectorXd* real, Eigen::VectorXd* imaginary);
+                         Eigen::VectorXd* real,
+                         Eigen::VectorXd* imaginary);
 
-// Same method as above, but only returns the real solutions.
-bool FindRealPolynomialRoots(const Eigen::VectorXd& polynomial,
-                             Eigen::VectorXd* real);
+// Remove leading terms with zero coefficients.
+Eigen::VectorXd RemoveLeadingZeros(const Eigen::VectorXd& polynomial_in);
 
-// Finds all real roots to a polynomial by computing the sturm chain.
-bool FindRealPolynomialRootsSturm(const Eigen::VectorXd& coeffs,
-                                  Eigen::VectorXd* real_roots);
-
-// Finds a single polynomials root iteratively with the starting position x0 and
-// guaranteed precision of epsilon.
-double FindRealRootIterative(const Eigen::VectorXd& polynomial,
-                             const double x0,
-                             const double epsilon,
-                             const int max_iter);
-
-// Evaluate the polynomial at x using the Horner scheme.
-inline double EvaluatePolynomial(const Eigen::VectorXd& polynomial, double x) {
-  double v = 0.0;
+// Evaluate the polynomial at x using the Horner scheme. This method is
+// templated so that the polynomial may be evaluated at complex points.
+template <typename T>
+inline T EvaluatePolynomial(const Eigen::VectorXd& polynomial, const T& x) {
+  T v = 0.0;
   for (int i = 0; i < polynomial.size(); ++i) {
     v = v * x + polynomial(i);
   }
@@ -125,6 +109,10 @@ Eigen::VectorXd DifferentiatePolynomial(const Eigen::VectorXd& polynomial);
 // Multiplies the two polynoimals together.
 Eigen::VectorXd MultiplyPolynomials(const Eigen::VectorXd& poly1,
                                     const Eigen::VectorXd& poly2);
+
+// Adds two polynomials (of potentially different sizes) together.
+Eigen::VectorXd AddPolynomials(const Eigen::VectorXd& poly1,
+                               const Eigen::VectorXd& poly2);
 
 // Performs polynomial division such that
 // polynomial = divisor * quotient + remainder.
@@ -141,6 +129,32 @@ void DividePolynomial(const Eigen::VectorXd& polynomial,
 // this ensures that the true minimum is found.
 void MinimizePolynomial(const Eigen::VectorXd& polynomial, double x_min,
                         double x_max, double* optimal_x, double* optimal_value);
+
+// Find roots of polynomials of the form a * x + b = 0. The real or imaginary
+// output variable may be NULL if the respective output is not desired.
+void FindLinearPolynomialRoots(const Eigen::VectorXd& polynomial,
+                               Eigen::VectorXd* real,
+                               Eigen::VectorXd* imaginary);
+
+// Finds roots of polynomials of the form a * x^2 + b * x + c = 0. The real or
+// imaginary output variable may be NULL if the respective output is not
+// desired.
+void FindQuadraticPolynomialRoots(const Eigen::VectorXd& polynomial,
+                                  Eigen::VectorXd* real,
+                                  Eigen::VectorXd* imaginary);
+
+// Finds a single polynomial root iteratively with the starting position x0 and
+// guaranteed precision of epsilon using Laguerre's method.
+double FindRootIterativeLaguerre(const Eigen::VectorXd& polynomial,
+                                 const double x0,
+                                 const double epsilon,
+                                 const int max_iterations);
+
+// Find a root from the starting guess using Newton's method.
+double FindRootIterativeNewton(const Eigen::VectorXd& polynomial,
+                               const double x0,
+                               const double epsilon,
+                               const int max_iterations);
 }  // namespace theia
 
 #endif  // THEIA_MATH_POLYNOMIAL_H_

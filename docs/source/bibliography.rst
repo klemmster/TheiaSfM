@@ -47,14 +47,17 @@ Bibliography
 .. [Hesch] J. Hesch, S. Roumeliotis. **A Direct Least-Squares (DLS) Approach for PnP**,
    *In Proceedings of the IEEE International Conference on Computer Vision (ICCV) 2013*
 
-.. [Kneip] L. Kneip, D. Scaramuzza, R. Siegwart, **A Novel Parametrization of the
-   Perspective-Three-Point Problem for a Direct Computation of Absolute Camera
-   Position and Orientation**, *In Proceedings of The IEEE Conference on Computer Vision
-   and Pattern Recognition (CVPR)*. Colorado Springs, USA. June 2011.
+.. [JenkinsTraub] Jenkins and Traub. **A Three-Stage Algorithm for Real Polynomaials
+   Using Quadratic Iteration**, SIAM, 1970.
 
 .. [JiangICCV] Jiang, N. and Cui, Z., and Tan, P. **A Global Linear Method for
    Camera Pose Registration**, *International Conference on Computer Vision
    (ICCV)*, 2013.
+
+.. [Kneip] L. Kneip, D. Scaramuzza, R. Siegwart, **A Novel Parametrization of the
+   Perspective-Three-Point Problem for a Direct Computation of Absolute Camera
+   Position and Orientation**, *In Proceedings of The IEEE Conference on Computer Vision
+   and Pattern Recognition (CVPR)*. Colorado Springs, USA. June 2011.
 
 .. [Kukelova] Z. Kukelova, M. Bujnak, T. Pajdla. **Real-time Solution to the
    Absolute Pose Problem with Unknown Radial Distortion and Focal Length**. *In
@@ -99,9 +102,16 @@ Bibliography
    Estimation via Residual Consensus**. *International Conference on Computer
    Vision (ICCV)*, 2011.
 
+.. [PhotoTourism] N. Snavely, S. Seitz, and R. Szeliski. **Photo tourism:
+   exploring photo collections in 3D.** *ACM transactions on graphics (TOG)*, 2006.
+
 .. [Stewenius5pt] H. Stewénius, C. Engels, D. Nistér. **Recent developments on
    direct relative orientation**. *ISPRS Journal of Photogrammetry and Remote
    Sensing*, 2006
+
+.. [SweeneyCVPR2015] C. Sweeney, L. Kneip, T. Hollerer, M. Turk. **Computing
+   Similarity Transformations from Only Image Correspondences**. *Computer Vision
+   and Pattern Recognition (CVPR)*, 2015
 
 .. [SweeneyGDLS] C. Sweeney, V. Fragoso, T. Hollerer, M. Turk. **gDLS: A
    Scalable Solution to the Generalized Pose and Scale Problem**. *European
@@ -118,6 +128,9 @@ Bibliography
 .. [Umeyama] Umeyama, S. **Least-squares estimation of transformation parameters
    between two point patterns**. *IEEE Transactions on Pattern Analysis and Machine
    Intelligence*, 1991.
+
+.. [VisualSfM] Wu, Changchang. **Towards a Linear Time Incremental Structure From
+   Motion**. *International Conference on 3D Vision*, 2013.
 
 .. [WilsonECCV2014] Wilson, K. and Snavely, N. **Robust Global Translation with 1DSfM**
    *European Conference on Computer Vision*, 2014.
