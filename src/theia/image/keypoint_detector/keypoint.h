@@ -36,6 +36,7 @@
 #define THEIA_IMAGE_KEYPOINT_DETECTOR_KEYPOINT_H_
 
 #include <vector>
+#include <cereal/access.hpp>
 
 namespace theia {
 // A generic keypoint class that mimics a protocol buffer The only variable
@@ -101,6 +102,12 @@ class Keypoint {
   double strength_;
   double scale_;
   double orientation_;
+
+  friend class cereal::access;
+  template <class Archive> void serialize(Archive& archive)
+  {
+      archive(x_, y_, keypoint_type_, strength_, scale_, orientation_);
+  }
 };
 
 }  // namespace theia
