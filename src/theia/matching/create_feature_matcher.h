@@ -1,4 +1,4 @@
-// Copyright (C) 2013 The Regents of the University of California (Regents).
+// Copyright (C) 2015 The Regents of the University of California (Regents).
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -32,47 +32,27 @@
 // Please contact the author of this library if you have any questions.
 // Author: Chris Sweeney (cmsweeney@cs.ucsb.edu)
 
-#include <gflags/gflags.h>
-#include <glog/logging.h>
-#include <string>
-#include "gtest/gtest.h"
+#ifndef THEIA_MATCHING_CREATE_FEATURE_MATCHER_H_
+#define THEIA_MATCHING_CREATE_FEATURE_MATCHER_H_
 
-#include "theia/image/descriptor/binary_descriptor.h"
-#include "theia/image/image.h"
-#include "theia/image/keypoint_detector/brisk_detector.h"
-#include "theia/image/descriptor/freak_descriptor.h"
+#include <memory>
+
 #include "theia/matching/distance.h"
+#include "theia/matching/feature_matcher.h"
 
-DEFINE_string(test_img, "image/descriptor/img1.png",
-              "Name of test image file.");
 namespace theia {
-namespace {
-std::string img_filename = THEIA_DATA_DIR + std::string("/") + FLAGS_test_img;
-}  // namespace
 
-TEST(FreakDescriptor, Sanity) {
-  FloatImage input_img(img_filename);
+// The type of matching to perform.
+enum class MatchingStrategy {
+  BRUTE_FORCE = 0,
+  CASCADE_HASHING = 1,
+};
 
-  // Get keypoints.
-  BriskDetector brisk_detector;
-  std::vector<Keypoint> brisk_keypoints;
-  brisk_detector.DetectKeypoints(input_img, &brisk_keypoints);
-
-  // For each keypoint, extract the freak descriptors.
-  FreakDescriptorExtractor freak_extractor;
-  EXPECT_TRUE(freak_extractor.Initialize());
-  BinaryVectorX descriptor;
-  // We need to make sure we pick a point away from the border so that a
-  // descriptor can actually be extracted.
-  CHECK_GT(brisk_keypoints.size(), 100);
-  EXPECT_TRUE(freak_extractor.ComputeDescriptor(input_img,
-                                                brisk_keypoints[100],
-                                                &descriptor));
-
-  std::vector<BinaryVectorX> freak_descriptors;
-  EXPECT_TRUE(freak_extractor.ComputeDescriptors(input_img,
-                                                 &brisk_keypoints,
-                                                 &freak_descriptors));
-}
+// A factory method for creating an L2-based feature matcher (i.e. for float
+// descriptors).
+std::unique_ptr<FeatureMatcher<L2> > CreateFeatureMatcher(
+    const MatchingStrategy& matching_strategy);
 
 }  // namespace theia
+
+#endif  // THEIA_MATCHING_CREATE_FEATURE_MATCHER_H_

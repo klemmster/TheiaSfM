@@ -1,4 +1,4 @@
-// Copyright (C) 2013 The Regents of the University of California (Regents).
+// Copyright (C) 2015 The Regents of the University of California (Regents).
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -32,30 +32,29 @@
 // Please contact the author of this library if you have any questions.
 // Author: Chris Sweeney (cmsweeney@cs.ucsb.edu)
 
-#include <gflags/gflags.h>
+#include "theia/matching/create_feature_matcher.h"
+
 #include <glog/logging.h>
-#include <string>
-#include "gtest/gtest.h"
+#include <memory>
 
-#include "theia/image/image.h"
-#include "theia/image/keypoint_detector/agast_detector.h"
-#include "theia/image/keypoint_detector/keypoint.h"
-#include "theia/util/random.h"
-
-DEFINE_string(test_img, "image/keypoint_detector/img1.png",
-              "Name of test image file.");
+#include "theia/matching/brute_force_feature_matcher.h"
+#include "theia/matching/cascade_hashing_feature_matcher.h"
+#include "theia/matching/distance.h"
+#include "theia/matching/feature_matcher.h"
 
 namespace theia {
-std::string img_filename = THEIA_DATA_DIR + std::string("/") + FLAGS_test_img;
 
-TEST(AgastDetector, Sanity) {
-  FloatImage input_img(img_filename);
-
-  // Get the keypoints our way.
-  AgastDetector agast_detector;
-  ASSERT_TRUE(agast_detector.Initialize());
-  std::vector<Keypoint> agast_keypoints;
-  ASSERT_TRUE(agast_detector.DetectKeypoints(input_img, &agast_keypoints));
+std::unique_ptr<FeatureMatcher<L2>> CreateFeatureMatcher(
+    const MatchingStrategy& matching_strategy) {
+  std::unique_ptr<FeatureMatcher<L2>> matcher;
+  if (matching_strategy == MatchingStrategy::CASCADE_HASHING) {
+    matcher.reset(new CascadeHashingFeatureMatcher);
+  } else if (matching_strategy == MatchingStrategy::BRUTE_FORCE) {
+    matcher.reset(new BruteForceFeatureMatcher<L2>);
+  } else {
+    LOG(FATAL) << "Invalid matching strategy specified.";
+  }
+  return matcher;
 }
 
 }  // namespace theia

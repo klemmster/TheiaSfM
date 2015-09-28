@@ -1,4 +1,4 @@
-// Copyright (C) 2013 The Regents of the University of California (Regents).
+// Copyright (C) 2015 The Regents of the University of California (Regents).
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -32,47 +32,30 @@
 // Please contact the author of this library if you have any questions.
 // Author: Chris Sweeney (cmsweeney@cs.ucsb.edu)
 
-#include <gflags/gflags.h>
+#include "theia/image/descriptor/create_descriptor_extractor.h"
+
 #include <glog/logging.h>
-#include <string>
-#include "gtest/gtest.h"
+#include <memory>
 
-#include "theia/image/descriptor/binary_descriptor.h"
-#include "theia/image/image.h"
-#include "theia/image/keypoint_detector/brisk_detector.h"
-#include "theia/image/descriptor/brisk_descriptor.h"
-#include "theia/matching/distance.h"
-
-DEFINE_string(test_img, "image/descriptor/img1.png",
-              "Name of test image file.");
+#include "theia/image/descriptor/descriptor_extractor.h"
+#include "theia/image/descriptor/sift_descriptor.h"
 
 namespace theia {
-namespace {
-std::string img_filename = THEIA_DATA_DIR + std::string("/") + FLAGS_test_img;
-}  // namespace
 
-TEST(BriskDescriptor, Sanity) {
-  FloatImage input_img(img_filename);
-
-  // Get keypoints.
-  BriskDetector brisk_detector;
-  std::vector<Keypoint> brisk_keypoints;
-  brisk_detector.DetectKeypoints(input_img, &brisk_keypoints);
-
-  // For each keypoint, extract the brisk descriptors.
-  BriskDescriptorExtractor brisk_extractor;
-  brisk_extractor.Initialize();
-  BinaryVectorX descriptor;
-  // We need to make sure we pick a point away from the border so that a
-  // descriptor can actually be extracted.
-  CHECK_GT(brisk_keypoints.size(), 100);
-  EXPECT_TRUE(brisk_extractor.ComputeDescriptor(input_img,
-                                                brisk_keypoints[100],
-                                                &descriptor));
-
-  std::vector<BinaryVectorX> brisk_descriptors;
-  EXPECT_TRUE(brisk_extractor.ComputeDescriptors(input_img,
-                                                 &brisk_keypoints,
-                                                 &brisk_descriptors));
+std::unique_ptr<DescriptorExtractor> CreateDescriptorExtractor(
+    const CreateDescriptorExtractorOptions& options) {
+  std::unique_ptr<DescriptorExtractor> descriptor_extractor;
+  switch (options.descriptor_extractor_type) {
+    case DescriptorExtractorType::SIFT:
+      descriptor_extractor.reset(
+          new SiftDescriptorExtractor(options.sift_options));
+      break;
+    default:
+      LOG(ERROR) << "Invalid Descriptor Extractor specified.";
+  }
+  CHECK(descriptor_extractor->Initialize())
+      << "Could not initialize the Descriptor Extractor";
+  return descriptor_extractor;
 }
+
 }  // namespace theia

@@ -1,4 +1,4 @@
-// Copyright (C) 2013 The Regents of the University of California (Regents).
+// Copyright (C) 2015 The Regents of the University of California (Regents).
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -30,44 +30,45 @@
 // POSSIBILITY OF SUCH DAMAGE.
 //
 // Please contact the author of this library if you have any questions.
-// Author: Chris Sweeney (cmsweeney@cs.ucsb.edu)
+// Author: Victor Fragoso (victor.fragoso@mail.wvu.edu)
 
-#ifndef THEIA_IMAGE_KEYPOINT_DETECTOR_BRISK_DETECTOR_H_
-#define THEIA_IMAGE_KEYPOINT_DETECTOR_BRISK_DETECTOR_H_
+#ifndef THEIA_SOLVERS_LMED_H_
+#define THEIA_SOLVERS_LMED_H_
 
-#include <vector>
-
-#include "theia/image/keypoint_detector/keypoint.h"
-#include "theia/image/keypoint_detector/keypoint_detector.h"
-#include "theia/image/keypoint_detector/brisk_impl.h"
-#include "theia/util/util.h"
+#include "theia/solvers/estimator.h"
+#include "theia/solvers/lmed_quality_measurement.h"
+#include "theia/solvers/random_sampler.h"
+#include "theia/solvers/sample_consensus_estimator.h"
 
 namespace theia {
-template<class T> class Image;
-typedef Image<float> FloatImage;
-
-// Detect keypoints using the BRISK method from "BRISK: Binary Robust Invariant
-// Scalable Keypoints" by Leutenegger et. al. (ICCV 2011). This is a version
-// ported from the reference implementation. NOTE: because this is ported, the
-// files brisk_impl.h/.cc do not adhere to the same style guides as the rest of
-// the code and, as a result, are incredibly ugly.
-class BriskDetector : public KeypointDetector {
+// Estimates a model using the least median of squares regression (LMed). This
+// method was published in P. Rousseeuw, "Least Median of Squares
+// Regression," Journal of the American statistical association, 1984. The idea
+// is to find the model that minimizes the median of the squared residuals.
+// The constraint for this method is that the dataset has to have at most 50% of
+// the points as outliers.
+// The implementation explores the model solution space randomly. In other
+// words, the hypotheses are generated from subsets of data drawn uniformly.
+template <class ModelEstimator>
+class LMed : public SampleConsensusEstimator<ModelEstimator> {
  public:
-  BriskDetector(int thresh, int octaves) : threshold_(thresh),
-                                           brisk_scale_space_(octaves) {}
-  BriskDetector() : BriskDetector(30, 6) {}
+  typedef typename ModelEstimator::Datum Datum;
+  typedef typename ModelEstimator::Model Model;
 
-  ~BriskDetector() {}
+  LMed(const RansacParameters& ransac_params, const ModelEstimator& estimator)
+      : SampleConsensusEstimator<ModelEstimator>(ransac_params, estimator) {}
+  virtual ~LMed() {}
 
-  bool DetectKeypoints(const FloatImage& image,
-                       std::vector<Keypoint>* keypoints);
-
- private:
-  int threshold_;
-  BriskScaleSpace brisk_scale_space_;
-  DISALLOW_COPY_AND_ASSIGN(BriskDetector);
+  bool Initialize() override {
+    const bool init_status =
+        SampleConsensusEstimator<ModelEstimator>::Initialize(
+            new RandomSampler<Datum>(this->estimator_.SampleSize()));
+    this->quality_measurement_.reset(
+        new LmedQualityMeasurement(this->estimator_.SampleSize()));
+    return init_status;
+  }
 };
 
 }  // namespace theia
 
-#endif  // THEIA_IMAGE_KEYPOINT_DETECTOR_BRISK_DETECTOR_H_
+#endif  // THEIA_SOLVERS_LMED_H_

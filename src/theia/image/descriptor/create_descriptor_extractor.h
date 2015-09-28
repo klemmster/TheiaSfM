@@ -1,4 +1,4 @@
-// Copyright (C) 2014 The Regents of the University of California (Regents).
+// Copyright (C) 2015 The Regents of the University of California (Regents).
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -32,19 +32,36 @@
 // Please contact the author of this library if you have any questions.
 // Author: Chris Sweeney (cmsweeney@cs.ucsb.edu)
 
-#ifndef THEIA_IMAGE_DESCRIPTOR_BINARY_DESCRIPTOR_H_
-#define THEIA_IMAGE_DESCRIPTOR_BINARY_DESCRIPTOR_H_
+#ifndef THEIA_IMAGE_DESCRIPTOR_CREATE_DESCRIPTOR_EXTRACTOR_H_
+#define THEIA_IMAGE_DESCRIPTOR_CREATE_DESCRIPTOR_EXTRACTOR_H_
 
-#include <Eigen/Core>
+#include <memory>
+
+#include "theia/image/descriptor/descriptor_extractor.h"
+#include "theia/image/keypoint_detector/sift_parameters.h"
 
 namespace theia {
 
-// Template a dynamic-size vector for binary descriptors. We put it in the Eigen
-// namespace for consistency. The size of this vector is 8 * descriptor
-// dimensions, as each bit is a dimension of the descriptor and each entry is a
-// uint_8 (i.e., 8 bits).
-typedef Eigen::Matrix<uint8_t, Eigen::Dynamic, 1> BinaryVectorX;
+// The various types of feature descriptors you can choose. We use the default
+// keypoint extractor for each feature type. Since this is a convenience class
+// anyways, this functionality is acceptable. If more flexibility (custom
+// features and custom descriptors) is needed then a new class may be developed.
+enum class DescriptorExtractorType {
+  SIFT = 0,
+};
+
+// Options for creating the feature extractor.
+struct CreateDescriptorExtractorOptions {
+  DescriptorExtractorType descriptor_extractor_type =
+      DescriptorExtractorType::SIFT;
+
+  SiftParameters sift_options;
+};
+
+// Factory method to create the keypoint detector and descriptor extractor.
+std::unique_ptr<DescriptorExtractor> CreateDescriptorExtractor(
+    const CreateDescriptorExtractorOptions& options);
 
 }  // namespace theia
 
-#endif  // THEIA_IMAGE_DESCRIPTOR_BINARY_DESCRIPTOR_H_
+#endif  // THEIA_IMAGE_DESCRIPTOR_CREATE_DESCRIPTOR_EXTRACTOR_H_

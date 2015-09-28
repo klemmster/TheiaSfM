@@ -37,15 +37,10 @@ file(GLOB THEIA_HDRS *.h)
 
 # Add sources
 set(THEIA_SRC
-  image/descriptor/brief_descriptor.cc
-  image/descriptor/brisk_descriptor.cc
+  image/descriptor/create_descriptor_extractor.cc
   image/descriptor/descriptor_extractor.cc
-  image/descriptor/freak_descriptor.cc
   image/descriptor/sift_descriptor.cc
   image/image_canvas.cc
-  image/keypoint_detector/agast_detector.cc
-  image/keypoint_detector/brisk_detector.cc
-  image/keypoint_detector/brisk_impl.cc
   image/keypoint_detector/sift_detector.cc
   io/read_1dsfm.cc
   io/read_bundler_files.cc
@@ -60,6 +55,7 @@ set(THEIA_SRC
   io/write_ply_file.cc
   matching/cascade_hasher.cc
   matching/cascade_hashing_feature_matcher.cc
+  matching/create_feature_matcher.cc
   matching/feature_matcher_utils.cc
   math/closed_form_polynomial_solver.cc
   math/find_polynomial_roots_companion_matrix.cc
@@ -87,6 +83,7 @@ set(THEIA_SRC
   sfm/estimators/estimate_uncalibrated_relative_pose.cc
   sfm/exif_reader.cc
   sfm/feature_extractor.cc
+  sfm/feature_extractor_and_matcher.cc
   sfm/filter_view_graph_cycles_by_rotation.cc
   sfm/filter_view_pairs_from_orientation.cc
   sfm/filter_view_pairs_from_relative_translation.cc
@@ -155,8 +152,7 @@ set(THEIA_LIBRARY_DEPENDENCIES
   easyexif
   statx
   stlplus3
-  vlfeat
-  agast)
+  vlfeat)
 
 set(THEIA_LIBRARY_SOURCE
   ${THEIA_SRC}
@@ -189,13 +185,8 @@ if (BUILD_TESTING)
       COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${TEST_NAME}_test)
   endmacro (GTEST)
 
-  gtest(image/descriptor/brief_descriptor)
-  gtest(image/descriptor/brisk_descriptor)
-  gtest(image/descriptor/freak_descriptor)
   gtest(image/descriptor/sift_descriptor)
   gtest(image/image)
-  gtest(image/keypoint_detector/agast_detector)
-  gtest(image/keypoint_detector/brisk_detector)
   gtest(image/keypoint_detector/sift_detector)
   gtest(matching/brute_force_feature_matcher)
   gtest(matching/distance)
@@ -263,6 +254,7 @@ if (BUILD_TESTING)
   gtest(sfm/view_graph/view_graph)
   gtest(solvers/arrsac)
   gtest(solvers/evsac)
+  gtest(solvers/lmed)
   gtest(solvers/prosac)
   gtest(solvers/random_sampler)
   gtest(solvers/ransac)

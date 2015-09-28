@@ -162,12 +162,16 @@ template <class Datum> class EvsacSampler : public Sampler<Datum> {
   // mixture_parameters:  The parameters of the pixture model.
   // probabilities:  The computed probabilities for every correspondence using
   //   the estimated mixture model.
+  // sampling_weights:  The computed weights for non-uniform sampling. Samples
+  //   with low probabilities of being correct are suppressed for sampling in a
+  //   RANSAC scheme.
   static bool CalculateMixtureModel(
       const Eigen::MatrixXd& sorted_distances,
       const double predictor_threshold,
       const FittingMethod fitting_method,
       MixtureModelParams* mixture_parameters,
-      std::vector<float>* probabilities);
+      std::vector<float>* probabilities,
+      std::vector<float>* sampling_weights);
 
   // Implementing the Sample method.
   bool Sample(
@@ -186,7 +190,7 @@ template <class Datum> class EvsacSampler : public Sampler<Datum> {
   // Fitting method.
   FittingMethod fitting_method_;
   // Correspondence sampler following the computed probabilities.
-  std::unique_ptr<std::discrete_distribution<>> correspondence_sampler;
+  std::unique_ptr<std::discrete_distribution<>> correspondence_sampler_;
   // RNG
   std::mt19937 rng_;
   // Mixture Model Params.
@@ -288,12 +292,14 @@ template <class Datum> class EvsacSampler : public Sampler<Datum> {
   //   predictions:  The correctness predictions for every correspndences.
   //   probabilities:  The computed probabilities for the correspondences used
   //     for sampling.
+  //   sampling_weights:  The computed weights for non-uniform sampling.
   static void ComputePosteriorAndWeights(
       const int num_correspondences,
       const MixtureModelParams& mixture_model_params,
       const std::vector<double>& smallest_distances,
       const std::vector<bool>& predictions,
-      std::vector<float>* probabilities);
+      std::vector<float>* probabilities,
+      std::vector<float>* sampling_weights);
 
   typedef optimo::solvers::PrimalDualQP<
     double,
@@ -469,8 +475,10 @@ void EvsacSampler<Datum>::ComputePosteriorAndWeights(
     const MixtureModelParams& mixture_model_params,
     const std::vector<double>& smallest_distances,
     const std::vector<bool>& predictions,
-    std::vector<float>* probabilities) {
+    std::vector<float>* probabilities,
+    std::vector<float>* sampling_weights) {
   CHECK_NOTNULL(probabilities)->resize(num_correspondences);
+  CHECK_NOTNULL(sampling_weights)->resize(num_correspondences);
   for (int i = 0; i < num_correspondences; i++) {
     // Calculate posterior.
     const double gam_val =
@@ -484,7 +492,9 @@ void EvsacSampler<Datum>::ComputePosteriorAndWeights(
             mixture_model_params.sigma, mixture_model_params.xi);
     const double posterior = gam_val / (gam_val + gev_val);
     // Removing those matches that are likely to be incorrect.
-    (*probabilities)[i] = predictions[i] ? static_cast<float>(posterior) : 0.0f;
+    (*probabilities)[i] = static_cast<float>(posterior);
+    (*sampling_weights)[i] =
+        predictions[i] ? static_cast<float>(posterior) : 0.0f;
   }
 }
 
@@ -562,7 +572,8 @@ bool EvsacSampler<Datum>::CalculateMixtureModel(
     const double predictor_threshold,
     const FittingMethod fitting_method,
     MixtureModelParams* mixture_model_params,
-    std::vector<float>* probabilities) {
+    std::vector<float>* probabilities,
+    std::vector<float>* sampling_weights) {
   CHECK_NOTNULL(mixture_model_params);
   CHECK_NOTNULL(probabilities);
   using std::vector;
@@ -604,7 +615,8 @@ bool EvsacSampler<Datum>::CalculateMixtureModel(
   // Calculate posterior and final weights.
   ComputePosteriorAndWeights(
       sorted_distances.rows(), *mixture_model_params,
-      smallest_distances, predicted_correct_correspondences, probabilities);
+      smallest_distances, predicted_correct_correspondences, probabilities,
+      sampling_weights);
 
   return true;
 }
@@ -620,16 +632,17 @@ bool EvsacSampler<Datum>::Initialize() {
 
   // Calculate Mixture model.
   std::vector<float> probabilities;
+  std::vector<float> sampling_weights;
   if (!CalculateMixtureModel(
           this->sorted_distances_, this->predictor_threshold_,
           this->fitting_method_, &this->mixture_model_params_,
-          &probabilities)) {
+          &probabilities, &sampling_weights)) {
     return false;
   }
 
   // Initialize sampler.
-  correspondence_sampler.reset(new std::discrete_distribution<>(
-      probabilities.begin(), probabilities.end()));
+  correspondence_sampler_.reset(new std::discrete_distribution<>(
+      sampling_weights.begin(), sampling_weights.end()));
 
   return true;
 }
@@ -644,7 +657,7 @@ bool EvsacSampler<Datum>::Sample(const std::vector<Datum>& data,
     int rand_number;
     // Generate a random number that has not already been used.
     while (std::find(random_numbers.begin(), random_numbers.end(),
-                     (rand_number = (*correspondence_sampler)(rng_)))
+                     (rand_number = (*correspondence_sampler_)(rng_)))
            != random_numbers.end()) {}
 
     random_numbers.push_back(rand_number);
