@@ -58,7 +58,7 @@ class QualityMeasurement {
   // cost, so lower is better. The indicies of the inliers are additionally
   // returned.
   virtual double ComputeCost(const std::vector<double>& residuals,
-                             std::vector<int>* inliers) = 0;
+                             std::vector<int>* inliers, bool bail_out = false) = 0;
 
  protected:
   double error_thresh_;

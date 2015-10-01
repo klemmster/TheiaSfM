@@ -62,7 +62,8 @@ struct RansacParameters {
         min_iterations(100),
         max_iterations(std::numeric_limits<int>::max()),
         use_mle(false),
-        use_Tdd_test(false) {}
+        use_Tdd_test(false),
+        bail_out(false) {}
 
   // Error threshold to determin inliers for RANSAC (e.g., squared reprojection
   // error). This is what will be used by the estimator to determine inliers.
@@ -107,6 +108,12 @@ struct RansacParameters {
   //
   // NOTE: Not currently implemented!
   bool use_Tdd_test;
+
+  // Instead of Computing cost for all residiuals, exit early (bail out) if
+  // the current solution can't get better then the current best hypothesis
+  // as proposed in
+  // Capel, D. P. An Effective Bail-out Test for RANSAC Consensus Scoring. BMVC, 2005
+  bool bail_out;
 };
 
 // A struct to hold useful outputs of Ransac-like methods.
@@ -287,7 +294,8 @@ bool SampleConsensusEstimator<ModelEstimator>::Estimate(
       // Determine cost of the generated model.
       std::vector<int> inlier_indices;
       const double sample_cost =
-          quality_measurement_->ComputeCost(residuals, &inlier_indices);
+          quality_measurement_->ComputeCost(residuals, &inlier_indices, 
+	      ransac_params_.bail_out);
       const double inlier_ratio = static_cast<double>(inlier_indices.size()) /
                                   static_cast<double>(data.size());
 
