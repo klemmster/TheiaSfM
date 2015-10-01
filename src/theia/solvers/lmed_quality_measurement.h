@@ -56,7 +56,7 @@ class LmedQualityMeasurement : public QualityMeasurement {
   // The cost is the squared residual. LMed minimizes the median of the squared
   // residuals over the hypotheses.
   double ComputeCost(const std::vector<double>& residuals,
-                     std::vector<int>* inliers) override {
+                     std::vector<int>* inliers, bool bail_out=false) override {
     inliers->reserve(residuals.size());
     const double median = CalculateMedianOfSquaredResiduals(residuals);
     CalculateInliers(residuals, median, min_sample_size_, inliers);

@@ -39,6 +39,18 @@ if (NOT PNG_FOUND AND NOT JPEG_FOUND AND NOT TIFF_FOUND)
   message(FATAL_ERROR "Cannot find libpng, libjpeg, or libtiff. At least one must be installed in order to use CImg for loading images.")
 endif (NOT PNG_FOUND AND NOT JPEG_FOUND AND NOT TIFF_FOUND)
 
+# ImageMagick is required for reading jpeg and png files.
+message("-- Check for ImageMagick")
+find_package(ImageMagick COMPONENTS convert mogrify REQUIRED)
+if (ImageMagick_FOUND)
+  message("-- Found ImageMagick: ${ImageMagick_INCLUDE_DIRS}")
+  include_directories( ${ImageMagick_convert_INCLUDE_DIRS} ${ImageMagick_mogrify_INCLUDE_DIRS} )
+  list( APPEND DEPENDENCIES_LIBRARIES ${ImageMagick_convert_LIBRARIES} ${ImageMagick_mogrify_LIBRARIES} )
+else (ImageMagick_FOUND)
+  message(FATAL_ERROR "Can't find ImageMagick. Please set ImageMagick_INCLUDE_DIR & "
+    "ImageMagick_LIBRARY")
+endif (ImageMagick_FOUND)
+
 if(PNG_FOUND)
   add_definitions(-Dcimg_use_png ${PNG_DEFINITIONS})
   include_directories( ${PNG_INCLUDE_DIRS} )

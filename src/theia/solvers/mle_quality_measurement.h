@@ -57,7 +57,7 @@ class MLEQualityMeasurement : public QualityMeasurement {
   // Given the residuals, assess a quality metric for the data. Returns the
   // quality assessment and outputs a vector of bools indicating the inliers.
   double ComputeCost(const std::vector<double>& residuals,
-                     std::vector<int>* inliers) override {
+                     std::vector<int>* inliers, bool bail_out=false) override {
     inliers->reserve(residuals.size());
     double mle_score = 0.0;
     for (int i = 0; i < residuals.size(); i++) {
@@ -67,9 +67,19 @@ class MLEQualityMeasurement : public QualityMeasurement {
       } else {
         mle_score += error_thresh_;
       }
+      if (bail_out && mle_score > min_mle_score) {
+        return mle_score;
+      }
+    }
+
+    if (bail_out) {
+        min_mle_score = mle_score;
     }
     return mle_score;
   }
+
+ private:
+  double min_mle_score = std::numeric_limits<double>::max();
 };
 
 }  // namespace theia

@@ -180,6 +180,8 @@ INCLUDE_DIRECTORIES(SYSTEM ${EIGEN_INCLUDE_DIRS})
 ADD_SUBDIRECTORY(libraries)
 INCLUDE_DIRECTORIES(
   libraries
+  ${cereal_SOURCE_DIR}
+  ${cereal_SOURCE_DIR}/include
   ${cimg_SOURCE_DIR}
   ${cimg_INCLUDE_DIR}
   ${easyexif_INCLUDE_DIR}
