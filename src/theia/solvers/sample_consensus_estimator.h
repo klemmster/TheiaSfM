@@ -294,15 +294,16 @@ bool SampleConsensusEstimator<ModelEstimator>::Estimate(
       // Determine cost of the generated model.
       std::vector<int> inlier_indices;
       const double sample_cost =
-          quality_measurement_->ComputeCost(residuals, &inlier_indices, 
+          quality_measurement_->ComputeCost(residuals, &inlier_indices,
 	      ransac_params_.bail_out);
-      const double inlier_ratio = static_cast<double>(inlier_indices.size()) /
-                                  static_cast<double>(data.size());
 
       // Update best model if error is the best we have seen.
       if (sample_cost < best_cost) {
         *best_model = temp_model;
         best_cost = sample_cost;
+
+        const double inlier_ratio = static_cast<double>(inlier_indices.size()) /
+                                    static_cast<double>(data.size());
 
         if (inlier_ratio <
             estimator_.SampleSize() / static_cast<double>(data.size())) {
