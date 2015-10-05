@@ -232,7 +232,8 @@ int SampleConsensusEstimator<ModelEstimator>::ComputeMaxIterations(
   const double num_samples =
       ransac_params_.use_Tdd_test ? min_sample_size + 1 : min_sample_size;
 
-  const double log_prob = log(1.0 - pow(inlier_ratio, num_samples));
+  const double log_prob = log(1.0 - pow(inlier_ratio, num_samples))
+      - std::numeric_limits<double>::epsilon();
 
   // NOTE: For very low inlier ratios the number of iterations can actually
   // exceed the maximum value for an int. We need to keep this variable as a
@@ -294,8 +295,8 @@ bool SampleConsensusEstimator<ModelEstimator>::Estimate(
       // Determine cost of the generated model.
       std::vector<int> inlier_indices;
       const double sample_cost =
-          quality_measurement_->ComputeCost(residuals, &inlier_indices, 
-	      ransac_params_.bail_out);
+          quality_measurement_->ComputeCost(residuals, &inlier_indices,
+          ransac_params_.bail_out);
       const double inlier_ratio = static_cast<double>(inlier_indices.size()) /
                                   static_cast<double>(data.size());
 

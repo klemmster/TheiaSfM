@@ -104,6 +104,7 @@ bool CascadeHashingFeatureMatcher::MatchImagePair(
     const Keypoint& keypoint2 = keypoints2[matches[i].feature2_ind];
     matched_features->at(i).feature1 = Feature(keypoint1.x(), keypoint1.y());
     matched_features->at(i).feature2 = Feature(keypoint2.x(), keypoint2.y());
+    matched_features->at(i).distance = matches[i].distance;
   }
   return true;
 }

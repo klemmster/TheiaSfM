@@ -197,7 +197,7 @@ INCLUDE(OptimizeTheiaCompilerFlags)
 OptimizeTheiaCompilerFlags()
 
 ADD_SUBDIRECTORY(src/theia)
-ADD_SUBDIRECTORY(applications)
+# ADD_SUBDIRECTORY(applications)
 
 IF (BUILD_DOCUMENTATION)
   MESSAGE("-- Documentation building is enabled")
