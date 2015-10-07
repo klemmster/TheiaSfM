@@ -66,16 +66,8 @@ template <typename DatumType, typename ModelType> class Estimator {
   // function appropriately for the task being solved. Returns true for
   // successful model estimation (and outputs model), false for failed
   // estimation. Typically, this is a minimal set, but it is not required to be.
-  virtual bool EstimateModel(const std::vector<Datum>& data,
+  virtual bool EstimateModel(const std::vector<std::reference_wrapper<Datum> >& data,
                              std::vector<Model>* model) const = 0;
-
-  // Estimate a model from a non-minimal sampling of the data. E.g. for a line,
-  // use SVD on a set of points instead of constructing a line from two points.
-  // By default, this simply implements the minimal case.
-  virtual bool EstimateModelNonminimal(const std::vector<Datum>& data,
-                                       std::vector<Model>* model) const {
-    return EstimateModel(data, model);
-  }
 
   // Refine the model based on an updated subset of data, and a pre-computed
   // model. Can be optionally implemented.

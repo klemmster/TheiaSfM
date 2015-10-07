@@ -108,7 +108,7 @@ class Arrsac : public SampleConsensusEstimator<ModelEstimator> {
   //   best_model: Output parameter that will be filled with the best estimated
   //     model on success.
   // Return: true on successful estimation, false otherwise.
-  bool Estimate(const std::vector<Datum>& data, Model* best_model,
+  bool Estimate(std::vector<Datum>& data, Model* best_model,
                 RansacSummary* summary);
 
   // This is sort of a hack. We make this method protected so that we can test
@@ -252,7 +252,7 @@ int Arrsac<ModelEstimator>::GenerateInitialHypothesisSet(
 }
 
 template <class ModelEstimator>
-bool Arrsac<ModelEstimator>::Estimate(const std::vector<Datum>& data,
+bool Arrsac<ModelEstimator>::Estimate(std::vector<Datum>& data,
                                       Model* best_model,
                                       RansacSummary* summary) {
   // Generate Initial Hypothesis Test

@@ -68,7 +68,7 @@ class UncalibratedAbsolutePoseEstimator
 
   // Estimates candidate absolute poses from correspondences.
   bool EstimateModel(
-      const std::vector<FeatureCorrespondence2D3D>& correspondences,
+      const std::vector<std::reference_wrapper<FeatureCorrespondence2D3D> >& correspondences,
       std::vector<Matrix3x4d>* absolute_poses) const {
     const std::vector<Eigen::Vector2d> features = {
         correspondences[0].feature, correspondences[1].feature,

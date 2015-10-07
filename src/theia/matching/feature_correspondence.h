@@ -51,6 +51,7 @@ struct FeatureCorrespondence {
   Feature feature1;
   Feature feature2;
   float distance;
+  float probability;
   bool operator==(const FeatureCorrespondence& other) const {
     return (feature1 == other.feature1 && feature2 == other.feature1);
   }
@@ -61,7 +62,7 @@ struct FeatureCorrespondence {
   friend class cereal::access;
   template <class Archive>
   void serialize(Archive& ar) {  // NOLINT
-    ar(feature1, feature2, distance);
+    ar(feature1, feature2, distance, probability);
   }
 };
 

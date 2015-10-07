@@ -54,7 +54,8 @@ public:
     virtual ~Sampler() {}
     // Samples the input variable data and fills the vector subset with the
     // samples.
-    virtual bool Sample(const std::vector<Datum>& data, std::vector<Datum>* subset) = 0;
+    virtual bool Sample(std::vector<Datum>& data,
+            std::vector<std::reference_wrapper<Datum> >* subset) = 0;
 
     virtual void Update(const std::vector<double>& residuals, double inlier_ratio){};
 

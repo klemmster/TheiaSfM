@@ -1,4 +1,4 @@
-// Copyright (C) 2015 The Regents of the University of California (Regents).
+// Copyright (C) 2013 The Regents of the University of California (Regents).
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -32,20 +32,37 @@
 // Please contact the author of this library if you have any questions.
 // Author: Chris Sweeney (cmsweeney@cs.ucsb.edu)
 
-#ifndef THEIA_SFM_ESTIMATORS_FEATURE_CORRESPONDENCE_2D_3D_H_
-#define THEIA_SFM_ESTIMATORS_FEATURE_CORRESPONDENCE_2D_3D_H_
+#ifndef THEIA_SOLVERS_BAYASAC_SAMPLER_H_
+#define THEIA_SOLVERS_BAYASAC_SAMPLER_H_
 
-#include <Eigen/Core>
+#include <stdlib.h>
+#include <algorithm>
+
+#include "theia/solvers/sampler.h"
+#include "theia/util/random.h"
+
 
 namespace theia {
+// New Conditional Sampling Strategies for Speeded-Up RANSAC by
+// Boterril, Mills et al
+template <class Datum> class BaySacSampler : public Sampler<Datum> {
+ public:
+  explicit BaySacSampler(const int min_num_samples)
+      : Sampler<Datum>(min_num_samples) {}
+  ~BaySacSampler() {}
 
-struct FeatureCorrespondence2D3D {
-  Eigen::Vector2d feature;
-  Eigen::Vector3d world_point;
-  float distance;
-  float probability;
+  bool Initialize() {
+    return true;
+  }
+
+  bool Sample(std::vector<Datum>& data,
+          std::vector<std::reference_wrapper<Datum> >* subset) {
+    subset->assign(data.begin(), data.begin() + this->min_num_samples_);
+    CHECK_EQ(subset->size(), this->min_num_samples_);
+    return true;
+  }
 };
 
 }  // namespace theia
 
-#endif  // THEIA_SFM_ESTIMATORS_FEATURE_CORRESPONDENCE_2D_3D_H_
+#endif  // THEIA_SOLVERS_BAYASAC_SAMPLER_H_

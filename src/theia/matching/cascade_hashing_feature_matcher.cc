@@ -105,6 +105,7 @@ bool CascadeHashingFeatureMatcher::MatchImagePair(
     matched_features->at(i).feature1 = Feature(keypoint1.x(), keypoint1.y());
     matched_features->at(i).feature2 = Feature(keypoint2.x(), keypoint2.y());
     matched_features->at(i).distance = matches[i].distance;
+    matched_features->at(i).probability = 1.0f - matches[i].distance;
   }
   return true;
 }

@@ -58,13 +58,13 @@ public:
     double SampleSize() const { return 8; }
 
     // Estimates candidate fundamental matrices from correspondences.
-    bool EstimateModel(const std::vector<FeatureCorrespondence>& correspondences,
+    bool EstimateModel(const std::vector<std::reference_wrapper<FeatureCorrespondence>>& correspondences,
         std::vector<Eigen::Matrix3d>* fundamental_matrices) const
     {
         std::vector<Eigen::Vector2d> image1_points, image2_points;
         for (int i = 0; i < 8; i++) {
-            image1_points.emplace_back(correspondences[i].feature1);
-            image2_points.emplace_back(correspondences[i].feature2);
+            image1_points.emplace_back(correspondences[i].get().feature1);
+            image2_points.emplace_back(correspondences[i].get().feature2);
         }
 
         Eigen::Matrix3d fmatrix;

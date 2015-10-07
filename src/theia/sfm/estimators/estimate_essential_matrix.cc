@@ -58,7 +58,7 @@ class EssentialMatrixEstimator
   double SampleSize() const { return 5; }
 
   // Estimates candidate essential matrices from correspondences.
-  bool EstimateModel(const std::vector<FeatureCorrespondence>& correspondences,
+  bool EstimateModel(const std::vector<std::reference_wrapper<FeatureCorrespondence> >& correspondences,
                      std::vector<Eigen::Matrix3d>* essential_matrices) const {
     Eigen::Vector2d image1_points[5], image2_points[5];
     for (int i = 0; i < 5; i++) {

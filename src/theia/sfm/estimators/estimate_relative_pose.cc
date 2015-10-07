@@ -69,7 +69,7 @@ class RelativePoseEstimator
   double SampleSize() const { return 5; }
 
   // Estimates candidate relative poses from correspondences.
-  bool EstimateModel(const std::vector<FeatureCorrespondence>& correspondences,
+  bool EstimateModel(const std::vector<std::reference_wrapper<FeatureCorrespondence> >& correspondences,
                      std::vector<RelativePose>* relative_poses) const {
     Eigen::Vector2d image1_points[5], image2_points[5];
     for (int i = 0; i < 5; i++) {

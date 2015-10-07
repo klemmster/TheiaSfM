@@ -47,6 +47,7 @@
 #include "theia/solvers/mle_quality_measurement.h"
 #include "theia/solvers/quality_measurement.h"
 #include "theia/solvers/sampler.h"
+#include "theia/solvers/data_updater.h"
 
 namespace theia {
 
@@ -174,6 +175,9 @@ template <class ModelEstimator> class SampleConsensusEstimator {
   // The quality metric for the estimated model and data.
   std::unique_ptr<QualityMeasurement> quality_measurement_;
 
+  // Update Data
+  std::unique_ptr<DataUpdater<Datum>> data_updater_ = nullptr;
+
   // Ransac parameters (see above struct).
   const RansacParameters& ransac_params_;
 
@@ -275,7 +279,7 @@ bool SampleConsensusEstimator<ModelEstimator>::Estimate(
        summary->num_iterations < max_iterations;
        summary->num_iterations++) {
     // Sample subset. Proceed if successfully sampled.
-    std::vector<Datum> data_subset;
+    std::vector<std::reference_wrapper<Datum> > data_subset;
     if (!sampler_->Sample(data, &data_subset)) {
       continue;
     }
@@ -299,6 +303,24 @@ bool SampleConsensusEstimator<ModelEstimator>::Estimate(
           ransac_params_.bail_out);
       const double inlier_ratio = static_cast<double>(inlier_indices.size()) /
                                   static_cast<double>(data.size());
+
+      if(data_updater_) {
+        std::vector<size_t> inlierSamplesetIndices;
+        inlierSamplesetIndices.reserve(estimator_.SampleSize());
+        /*
+        for(auto& modelSample : data_subset) {
+            auto indexIT = std::find_if(inlier_indices.begin(), inlier_indices.end(),
+                        [modelSample, &data] (int inlierIndex) -> bool
+                        { return data[inlierIndex] == modelSample; });
+            if( indexIT != inlier_indices.end() ) {
+                inlierSamplesetIndices.push_back(*indexIT);
+            }
+        }
+        data_updater_->UpdateData(const_cast<std::vector<Datum>&>(data),
+                inlierSamplesetIndices, summary->num_iterations,
+                inlier_ratio, estimator_.SampleSize());
+                */
+      };
 
       // Update best model if error is the best we have seen.
       if (sample_cost < best_cost) {

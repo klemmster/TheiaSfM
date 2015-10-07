@@ -66,7 +66,7 @@ class HomographyEstimator
   double SampleSize() const { return 4; }
 
   // Estimates candidate relative poses from correspondences.
-  bool EstimateModel(const std::vector<FeatureCorrespondence>& correspondences,
+  bool EstimateModel(const std::vector<std::reference_wrapper<FeatureCorrespondence> >& correspondences,
                      std::vector<Eigen::Matrix3d>* homography) const {
     std::vector<Eigen::Vector2d> image1_points(4), image2_points(4);
     for (int i = 0; i < 4; i++) {

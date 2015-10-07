@@ -75,7 +75,7 @@ class UncalibratedRelativePoseEstimator
 
   // Estimates candidate relative poses from correspondences.
   bool EstimateModel(
-      const std::vector<FeatureCorrespondence>& centered_correspondences,
+      const std::vector<std::reference_wrapper<FeatureCorrespondence> >& centered_correspondences,
       std::vector<UncalibratedRelativePose>* relative_poses) const {
     std::vector<Eigen::Vector2d> image1_points, image2_points;
     for (int i = 0; i < 8; i++) {

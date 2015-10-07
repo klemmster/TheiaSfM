@@ -171,6 +171,7 @@
 #include "theia/sfm/view_graph/triplet_extractor.h"
 #include "theia/sfm/view_graph/view_graph.h"
 #include "theia/solvers/arrsac.h"
+#include "theia/solvers/baysac.h"
 #include "theia/solvers/estimator.h"
 #include "theia/solvers/evsac.h"
 #include "theia/solvers/evsac_sampler.h"
