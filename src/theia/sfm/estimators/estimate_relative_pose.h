@@ -60,7 +60,7 @@ struct RelativePose {
 bool EstimateRelativePose(
     const RansacParameters& ransac_params,
     const RansacType& ransac_type,
-    const std::vector<FeatureCorrespondence>& normalized_correspondences,
+    std::vector<FeatureCorrespondence>& normalized_correspondences,
     RelativePose* relative_pose,
     RansacSummary* ransac_summary);
 

@@ -81,7 +81,7 @@ void DecomposeEssentialMatrix(const Matrix3d& essential_matrix,
 
 int GetBestPoseFromEssentialMatrix(
     const Matrix3d& essential_matrix,
-    const std::vector<FeatureCorrespondence>& normalized_correspondences,
+    std::vector<std::reference_wrapper<FeatureCorrespondence> >& normalized_correspondences,
     Matrix3d* rotation,
     Vector3d* position) {
   // Decompose ematrix.

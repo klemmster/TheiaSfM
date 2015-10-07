@@ -78,7 +78,7 @@ class Arrsac : public SampleConsensusEstimator<ModelEstimator> {
   //   block_size: Number of data points a hypothesis is evaluated against
   //     before preemptive ordering is used.
   Arrsac(const RansacParameters& ransac_params,
-         const ModelEstimator& estimator,
+         ModelEstimator& estimator,
          int max_candidate_hyps = 500,
          int block_size = 100)
       : SampleConsensusEstimator<ModelEstimator>(ransac_params, estimator),
@@ -118,7 +118,7 @@ class Arrsac : public SampleConsensusEstimator<ModelEstimator> {
   // initial set of hypotheses from a PROSAC-style sampling. This initial set of
   // hypotheses will be used to generate more hypotheses in the Compute
   // method. Returns the set of initial hypotheses.
-  int GenerateInitialHypothesisSet(const std::vector<Datum>& data_input,
+  int GenerateInitialHypothesisSet(std::vector<Datum>& data_input,
                                    std::vector<Model>* accepted_hypotheses);
 
  private:
@@ -144,7 +144,7 @@ class Arrsac : public SampleConsensusEstimator<ModelEstimator> {
 
 template <class ModelEstimator>
 int Arrsac<ModelEstimator>::GenerateInitialHypothesisSet(
-    const std::vector<Datum>& data_input,
+    std::vector<Datum>& data_input,
     std::vector<Model>* accepted_hypotheses) {
   //   set parameters for SPRT test, calculate initial value of A
   double decision_threshold = CalculateSPRTDecisionThreshold(sigma_, epsilon_);
@@ -175,14 +175,14 @@ int Arrsac<ModelEstimator>::GenerateInitialHypothesisSet(
     std::vector<Model> hypotheses;
     if (!inner_ransac) {
       // Generate hypothesis h(k) with k-th PROSAC sample.
-      std::vector<Datum> prosac_subset;
+      std::vector<std::reference_wrapper<Datum >> prosac_subset;
       prosac_sampler.SetSampleNumber(k);
       prosac_sampler.Sample(data_input, &prosac_subset);
       this->estimator_.EstimateModel(prosac_subset, &hypotheses);
     } else {
       // Generate hypothesis h(k) with subset generated from inliers of a
       // previous hypothesis.
-      std::vector<Datum> random_subset;
+      std::vector<std::reference_wrapper<Datum >> random_subset;
       random_sampler.Sample(data, &random_subset);
       this->estimator_.EstimateModel(random_subset, &hypotheses);
 
@@ -323,7 +323,7 @@ bool Arrsac<ModelEstimator>::Estimate(std::vector<Datum>& data,
       if (temp_max_candidate_hyps > k) {
         // Generate and evaluate M' - k new hypotheses on i data points.
         for (int j = 0; j < temp_max_candidate_hyps - k; j++) {
-          std::vector<Datum> data_random_subset;
+          std::vector<std::reference_wrapper<Datum> > data_random_subset;
           random_sampler.Sample(data, &data_random_subset);
 
           // Estimate new hypothesis model.

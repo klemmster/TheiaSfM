@@ -57,7 +57,7 @@ class Evsac : public SampleConsensusEstimator<ModelEstimator> {
   // fitting_method:  The fiting method MLE or QUANTILE_NLS (see statx doc).
   //   The recommended fitting method is the MLE estimation.
   Evsac(const RansacParameters& ransac_params,
-        const ModelEstimator& estimator,
+        ModelEstimator& estimator,
         const Eigen::MatrixXd& sorted_distances,
         const double predictor_threshold,
         const FittingMethod fitting_method) :

@@ -58,8 +58,8 @@ public:
     double SampleSize() const { return 8; }
 
     // Estimates candidate fundamental matrices from correspondences.
-    bool EstimateModel(const std::vector<std::reference_wrapper<FeatureCorrespondence>>& correspondences,
-        std::vector<Eigen::Matrix3d>* fundamental_matrices) const
+    bool EstimateModel(std::vector<std::reference_wrapper<FeatureCorrespondence> >& correspondences,
+        std::vector<Eigen::Matrix3d>* fundamental_matrices)
     {
         std::vector<Eigen::Vector2d> image1_points, image2_points;
         for (int i = 0; i < 8; i++) {
@@ -96,7 +96,7 @@ private:
 // could be successfully estimated and false otherwise.
 bool EstimateFundamentalMatrix(const RansacParameters& ransac_params,
     const RansacType& ransac_type,
-    const std::vector<FeatureCorrespondence>& normalized_correspondences,
+    std::vector<FeatureCorrespondence>& normalized_correspondences,
     Eigen::Matrix3d* essential_matrix, RansacSummary* ransac_summary);
 
 } // namespace theia

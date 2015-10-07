@@ -69,14 +69,14 @@ class CameraAlignmentEstimator
   double SampleSize() const { return 4; }
 
   bool EstimateModel(
-      const std::vector<CameraCorrespondence>& correspondences,
-      std::vector<SimilarityTransformation>* sim_transforms) const {
+      std::vector<std::reference_wrapper<CameraCorrespondence> >& correspondences,
+      std::vector<SimilarityTransformation>* sim_transforms) {
     SimilarityTransformation sim_transform;
     std::vector<Eigen::Vector3d> positions1(correspondences.size());
     std::vector<Eigen::Vector3d> positions2(correspondences.size());
     for (int i = 0; i < correspondences.size(); i++) {
-      positions1[i] = correspondences[i].camera1;
-      positions2[i] = correspondences[i].camera2;
+      positions1[i] = correspondences[i].get().camera1;
+      positions2[i] = correspondences[i].get().camera2;
     }
 
     AlignPointCloudsUmeyama(positions2,

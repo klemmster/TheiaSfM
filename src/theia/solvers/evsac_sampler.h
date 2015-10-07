@@ -174,7 +174,8 @@ template <class Datum> class EvsacSampler : public Sampler<Datum> {
       std::vector<float>* sampling_weights);
 
   // Implementing the Sample method.
-  bool Sample(std::vector<Datum>& data, std::vector<Datum&>* subset) override;
+  bool Sample(std::vector<Datum>& data,
+          std::vector<std::reference_wrapper<Datum> >* subset) override;
 
   // Implementing the Initialize method.
   bool Initialize() override;
@@ -647,7 +648,7 @@ bool EvsacSampler<Datum>::Initialize() {
 }
 
 template <class Datum>
-bool EvsacSampler<Datum>::Sample(const std::vector<Datum>& data,
+bool EvsacSampler<Datum>::Sample(std::vector<Datum>& data,
                                  std::vector<std::reference_wrapper<Datum> >* subset) {
   CHECK_EQ(data.size(), sorted_distances_.rows());
   CHECK_NOTNULL(subset)->resize(this->min_num_samples_);

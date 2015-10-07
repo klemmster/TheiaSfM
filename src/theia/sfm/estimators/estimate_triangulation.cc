@@ -70,26 +70,26 @@ class TriangulationEstimator
   double SampleSize() const { return 2; }
 
   // Triangulates the 3D point from 2 observations.
-  bool EstimateModel(const std::vector<PointObservation>& observations,
-                     std::vector<Eigen::Vector4d>* triangulated_points) const {
+  bool EstimateModel(std::vector<std::reference_wrapper<PointObservation> >& observations,
+                     std::vector<Eigen::Vector4d>* triangulated_points) {
     // TODO(cmsweeney): We do not check the angle between the two views at the
     // moment. This requires the ray direction of each feature meaning we would
     // have to either decompose the projection matrix or pass in the ray
     // direction as part of the Point Observation. RANSAC should be good enough
     // at filtering out these bad solutions so we ignore this for now.
     triangulated_points->resize(1);
-    if (!Triangulate(observations[0].projection_matrix,
-                     observations[1].projection_matrix,
-                     observations[0].feature,
-                     observations[1].feature,
+    if (!Triangulate(observations[0].get().projection_matrix,
+                     observations[1].get().projection_matrix,
+                     observations[0].get().feature,
+                     observations[1].get().feature,
                      &triangulated_points->at(0))) {
       return false;
     }
     // Only return true if the point is in front of both cameras and the
     // triangulation was a success.
-    return IsPointInFrontOfCamera(observations[0].projection_matrix,
+    return IsPointInFrontOfCamera(observations[0].get().projection_matrix,
                                   triangulated_points->at(0)) &&
-        IsPointInFrontOfCamera(observations[1].projection_matrix,
+        IsPointInFrontOfCamera(observations[1].get().projection_matrix,
                                triangulated_points->at(0));
   }
 
@@ -113,7 +113,7 @@ class TriangulationEstimator
 
 bool EstimateTriangulation(const RansacParameters& ransac_params,
                            const std::vector<Matrix3x4d>& projection_matrices,
-                           const std::vector<Eigen::Vector2d>& features,
+                           std::vector<Eigen::Vector2d>& features,
                            Eigen::Vector4d* triangulated_point,
                            RansacSummary* summary) {
   if (projection_matrices.size() < 2) {

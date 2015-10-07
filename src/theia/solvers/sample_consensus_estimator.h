@@ -135,7 +135,7 @@ template <class ModelEstimator> class SampleConsensusEstimator {
   typedef typename ModelEstimator::Model Model;
 
   SampleConsensusEstimator(const RansacParameters& ransac_params,
-                           const ModelEstimator& estimator);
+                           ModelEstimator& estimator);
 
   virtual bool Initialize() { return true; }
 
@@ -149,7 +149,7 @@ template <class ModelEstimator> class SampleConsensusEstimator {
   //     and Model type
   //   best_model: The output parameter that will be filled with the best model
   //     estimated from RANSAC
-  virtual bool Estimate(const std::vector<Datum>& data,
+  virtual bool Estimate(std::vector<Datum>& data,
                         Model* best_model,
                         RansacSummary* summary);
 
@@ -182,14 +182,14 @@ template <class ModelEstimator> class SampleConsensusEstimator {
   const RansacParameters& ransac_params_;
 
   // Estimator to use for generating models.
-  const ModelEstimator& estimator_;
+  ModelEstimator& estimator_;
 };
 
 // --------------------------- Implementation --------------------------------//
 
 template <class ModelEstimator>
 SampleConsensusEstimator<ModelEstimator>::SampleConsensusEstimator(
-    const RansacParameters& ransac_params, const ModelEstimator& estimator)
+    const RansacParameters& ransac_params, ModelEstimator& estimator)
     : ransac_params_(ransac_params), estimator_(estimator) {
   CHECK_GT(ransac_params.error_thresh, 0)
       << "Error threshold must be set to greater than zero";
@@ -252,7 +252,7 @@ int SampleConsensusEstimator<ModelEstimator>::ComputeMaxIterations(
 
 template <class ModelEstimator>
 bool SampleConsensusEstimator<ModelEstimator>::Estimate(
-    const std::vector<Datum>& data,
+    std::vector<Datum>& data,
     Model* best_model,
     RansacSummary* summary) {
   CHECK_GT(data.size(), 0)

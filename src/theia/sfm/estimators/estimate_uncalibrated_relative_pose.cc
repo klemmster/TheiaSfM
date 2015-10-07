@@ -75,12 +75,12 @@ class UncalibratedRelativePoseEstimator
 
   // Estimates candidate relative poses from correspondences.
   bool EstimateModel(
-      const std::vector<std::reference_wrapper<FeatureCorrespondence> >& centered_correspondences,
-      std::vector<UncalibratedRelativePose>* relative_poses) const {
+      std::vector<std::reference_wrapper<FeatureCorrespondence> >& centered_correspondences,
+      std::vector<UncalibratedRelativePose>* relative_poses) {
     std::vector<Eigen::Vector2d> image1_points, image2_points;
     for (int i = 0; i < 8; i++) {
-      image1_points.emplace_back(centered_correspondences[i].feature1);
-      image2_points.emplace_back(centered_correspondences[i].feature2);
+      image1_points.emplace_back(centered_correspondences[i].get().feature1);
+      image2_points.emplace_back(centered_correspondences[i].get().feature2);
     }
 
     UncalibratedRelativePose relative_pose;
@@ -113,13 +113,15 @@ class UncalibratedRelativePoseEstimator
         centered_correspondences.size());
     for (int i = 0; i < centered_correspondences.size(); i++) {
       normalized_correspondences[i].feature1 =
-          centered_correspondences[i].feature1 / relative_pose.focal_length1;
+          centered_correspondences[i].get().feature1 / relative_pose.focal_length1;
       normalized_correspondences[i].feature2 =
-          centered_correspondences[i].feature2 / relative_pose.focal_length2;
+          centered_correspondences[i].get().feature2 / relative_pose.focal_length2;
     }
 
+    std::vector<std::reference_wrapper<FeatureCorrespondence> >
+        normalizedRefs(normalized_correspondences.begin(), normalized_correspondences.end());
     GetBestPoseFromEssentialMatrix(essential_matrix,
-                                   normalized_correspondences,
+                                   normalizedRefs,
                                    &relative_pose.rotation,
                                    &relative_pose.position);
     relative_poses->emplace_back(relative_pose);
@@ -155,7 +157,7 @@ class UncalibratedRelativePoseEstimator
 bool EstimateUncalibratedRelativePose(
     const RansacParameters& ransac_params,
     const RansacType& ransac_type,
-    const std::vector<FeatureCorrespondence>& centered_correspondences,
+    std::vector<FeatureCorrespondence>& centered_correspondences,
     UncalibratedRelativePose* relative_pose,
     RansacSummary* ransac_summary) {
   UncalibratedRelativePoseEstimator relative_pose_estimator;

@@ -51,7 +51,7 @@ class BaySac : public SampleConsensusEstimator<ModelEstimator> {
   typedef typename ModelEstimator::Datum Datum;
   typedef typename ModelEstimator::Model Model;
 
-  BaySac(const RansacParameters& ransac_params, const ModelEstimator& estimator)
+  BaySac(const RansacParameters& ransac_params, ModelEstimator& estimator)
       : SampleConsensusEstimator<ModelEstimator>(ransac_params, estimator) {}
   ~BaySac() {}
 

@@ -50,7 +50,7 @@ struct RansacSummary;
 // observations to find the point with the largest support.
 bool EstimateTriangulation(const RansacParameters& ransac_params,
                            const std::vector<Matrix3x4d>& projection_matrices,
-                           const std::vector<Eigen::Vector2d>& features,
+                           std::vector<Eigen::Vector2d>& features,
                            Eigen::Vector4d* triangulated_point,
                            RansacSummary* summary);
 

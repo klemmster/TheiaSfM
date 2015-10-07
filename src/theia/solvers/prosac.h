@@ -54,7 +54,7 @@ class Prosac : public SampleConsensusEstimator<ModelEstimator> {
   typedef typename ModelEstimator::Datum Datum;
   typedef typename ModelEstimator::Model Model;
 
-  Prosac(const RansacParameters& ransac_params, const ModelEstimator& estimator)
+  Prosac(const RansacParameters& ransac_params, ModelEstimator& estimator)
       : SampleConsensusEstimator<ModelEstimator>(ransac_params, estimator) {}
   ~Prosac() {}
 

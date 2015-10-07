@@ -64,7 +64,7 @@ struct UncalibratedRelativePose {
 bool EstimateUncalibratedRelativePose(
     const RansacParameters& ransac_params,
     const RansacType& ransac_type,
-    const std::vector<FeatureCorrespondence>& centered_correspondences,
+    std::vector<FeatureCorrespondence>& centered_correspondences,
     UncalibratedRelativePose* relative_pose,
     RansacSummary* ransac_summary);
 

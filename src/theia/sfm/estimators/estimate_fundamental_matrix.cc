@@ -44,7 +44,7 @@ namespace theia {
 
 bool EstimateFundamentalMatrix(const RansacParameters& ransac_params,
     const RansacType& ransac_type,
-    const std::vector<FeatureCorrespondence>& normalized_correspondences,
+    std::vector<FeatureCorrespondence>& normalized_correspondences,
     Eigen::Matrix3d* fundamental_matrix, RansacSummary* ransac_summary)
 {
     FundamentalMatrixEstimator fundamental_matrix_estimator;

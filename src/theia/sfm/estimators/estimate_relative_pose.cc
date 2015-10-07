@@ -69,12 +69,12 @@ class RelativePoseEstimator
   double SampleSize() const { return 5; }
 
   // Estimates candidate relative poses from correspondences.
-  bool EstimateModel(const std::vector<std::reference_wrapper<FeatureCorrespondence> >& correspondences,
-                     std::vector<RelativePose>* relative_poses) const {
+  bool EstimateModel(std::vector<std::reference_wrapper<FeatureCorrespondence> >& correspondences,
+                     std::vector<RelativePose>* relative_poses) {
     Eigen::Vector2d image1_points[5], image2_points[5];
     for (int i = 0; i < 5; i++) {
-      image1_points[i] = correspondences[i].feature1;
-      image2_points[i] = correspondences[i].feature2;
+      image1_points[i] = correspondences[i].get().feature1;
+      image2_points[i] = correspondences[i].get().feature2;
     }
 
     std::vector<Matrix3d> essential_matrices;
@@ -127,7 +127,7 @@ class RelativePoseEstimator
 bool EstimateRelativePose(
     const RansacParameters& ransac_params,
     const RansacType& ransac_type,
-    const std::vector<FeatureCorrespondence>& normalized_correspondences,
+    std::vector<FeatureCorrespondence>& normalized_correspondences,
     RelativePose* relative_pose,
     RansacSummary* ransac_summary) {
   RelativePoseEstimator relative_pose_estimator;

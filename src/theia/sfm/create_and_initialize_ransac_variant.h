@@ -62,7 +62,7 @@ template <class Estimator>
 std::unique_ptr<SampleConsensusEstimator<Estimator> >
 CreateAndInitializeRansacVariant(
     const RansacType& ransac_type,
-    const RansacParameters& ransac_options, const Estimator& estimator) {
+    const RansacParameters& ransac_options, Estimator& estimator) {
   std::unique_ptr<SampleConsensusEstimator<Estimator> > ransac_variant;
   switch (ransac_type) {
     case RansacType::RANSAC:

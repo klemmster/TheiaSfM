@@ -58,7 +58,7 @@ void DecomposeEssentialMatrix(const Eigen::Matrix3d& essential_matrix,
 // returned.
 int GetBestPoseFromEssentialMatrix(
     const Eigen::Matrix3d& essential_matrix,
-    const std::vector<FeatureCorrespondence>& normalized_correspondences,
+    std::vector<std::reference_wrapper<FeatureCorrespondence> >& normalized_correspondences,
     Eigen::Matrix3d* rotation,
     Eigen::Vector3d* position);
 

@@ -65,14 +65,14 @@ class CalibratedAbsolutePoseEstimator
 
   // Estimates candidate absolute poses from correspondences.
   bool EstimateModel(
-      const std::vector<std::reference_wrapper<FeatureCorrespondence2D3D> >& correspondences,
-      std::vector<CalibratedAbsolutePose>* absolute_poses) const {
-    const Eigen::Vector2d features[3] = {correspondences[0].feature,
-                                         correspondences[1].feature,
-                                         correspondences[2].feature};
-    const Eigen::Vector3d world_points[3] = {correspondences[0].world_point,
-                                             correspondences[1].world_point,
-                                             correspondences[2].world_point};
+      std::vector<std::reference_wrapper<FeatureCorrespondence2D3D> >& correspondences,
+      std::vector<CalibratedAbsolutePose>* absolute_poses) {
+    const Eigen::Vector2d features[3] = {correspondences[0].get().feature,
+                                         correspondences[1].get().feature,
+                                         correspondences[2].get().feature};
+    const Eigen::Vector3d world_points[3] = {correspondences[0].get().world_point,
+                                             correspondences[1].get().world_point,
+                                             correspondences[2].get().world_point};
 
     std::vector<Eigen::Matrix3d> rotations;
     std::vector<Eigen::Vector3d> translations;
@@ -114,7 +114,7 @@ class CalibratedAbsolutePoseEstimator
 bool EstimateCalibratedAbsolutePose(
     const RansacParameters& ransac_params,
     const RansacType& ransac_type,
-    const std::vector<FeatureCorrespondence2D3D>& normalized_correspondences,
+    std::vector<FeatureCorrespondence2D3D>& normalized_correspondences,
     CalibratedAbsolutePose* absolute_pose,
     RansacSummary* ransac_summary) {
   CalibratedAbsolutePoseEstimator absolute_pose_estimator;

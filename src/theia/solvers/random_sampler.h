@@ -62,13 +62,12 @@ template <class Datum> class RandomSampler : public Sampler<Datum> {
   // random samples.
   bool Sample(std::vector<Datum>& data,
           std::vector<std::reference_wrapper<Datum> >* subset) {
-    subset->resize(this->min_num_samples_);
     std::vector<int> random_numbers(data.size());
     std::iota(random_numbers.begin(), random_numbers.end(), 0);
 
     for (int i = 0; i < this->min_num_samples_; i++) {
       std::swap(random_numbers[i], random_numbers[RandInt(i, data.size() - 1)]);
-      (*subset)[i] = data[random_numbers[i]];
+      subset->push_back(data[random_numbers[i]]);
     }
 
     return true;

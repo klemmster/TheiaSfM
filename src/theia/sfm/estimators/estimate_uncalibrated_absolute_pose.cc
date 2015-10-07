@@ -68,14 +68,14 @@ class UncalibratedAbsolutePoseEstimator
 
   // Estimates candidate absolute poses from correspondences.
   bool EstimateModel(
-      const std::vector<std::reference_wrapper<FeatureCorrespondence2D3D> >& correspondences,
-      std::vector<Matrix3x4d>* absolute_poses) const {
+      std::vector<std::reference_wrapper<FeatureCorrespondence2D3D> >& correspondences,
+      std::vector<Matrix3x4d>* absolute_poses) {
     const std::vector<Eigen::Vector2d> features = {
-        correspondences[0].feature, correspondences[1].feature,
-        correspondences[2].feature, correspondences[3].feature};
+        correspondences[0].get().feature, correspondences[1].get().feature,
+        correspondences[2].get().feature, correspondences[3].get().feature};
     const std::vector<Eigen::Vector3d> world_points = {
-        correspondences[0].world_point, correspondences[1].world_point,
-        correspondences[2].world_point, correspondences[3].world_point};
+        correspondences[0].get().world_point, correspondences[1].get().world_point,
+        correspondences[2].get().world_point, correspondences[3].get().world_point};
 
     const int num_solutions =
         FourPointPoseAndFocalLength(features, world_points, absolute_poses);
@@ -104,7 +104,7 @@ class UncalibratedAbsolutePoseEstimator
 bool EstimateUncalibratedAbsolutePose(
     const RansacParameters& ransac_params,
     const RansacType& ransac_type,
-    const std::vector<FeatureCorrespondence2D3D>& normalized_correspondences,
+    std::vector<FeatureCorrespondence2D3D>& normalized_correspondences,
     UncalibratedAbsolutePose* absolute_pose,
     RansacSummary* ransac_summary) {
   UncalibratedAbsolutePoseEstimator absolute_pose_estimator;
