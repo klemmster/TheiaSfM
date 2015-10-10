@@ -304,22 +304,13 @@ bool SampleConsensusEstimator<ModelEstimator>::Estimate(
       const double inlier_ratio = static_cast<double>(inlier_indices.size()) /
                                   static_cast<double>(data.size());
 
+      VLOG(3) << "Inlier ratio: " << inlier_ratio;
+      VLOG(3) << "num_iterations: "  << summary->num_iterations;
+
       if(data_updater_) {
-        std::vector<size_t> inlierSamplesetIndices;
-        inlierSamplesetIndices.reserve(estimator_.SampleSize());
-        /*
-        for(auto& modelSample : data_subset) {
-            auto indexIT = std::find_if(inlier_indices.begin(), inlier_indices.end(),
-                        [modelSample, &data] (int inlierIndex) -> bool
-                        { return data[inlierIndex] == modelSample; });
-            if( indexIT != inlier_indices.end() ) {
-                inlierSamplesetIndices.push_back(*indexIT);
-            }
-        }
         data_updater_->UpdateData(const_cast<std::vector<Datum>&>(data),
-                inlierSamplesetIndices, summary->num_iterations,
+                data_subset, summary->num_iterations,
                 inlier_ratio, estimator_.SampleSize());
-                */
       };
 
       // Update best model if error is the best we have seen.

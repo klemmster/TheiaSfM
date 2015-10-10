@@ -123,7 +123,7 @@ IF (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-return-type-c-linkage")
   ENDIF(HAVE_RETURN_TYPE_C_LINKAGE)
 ENDIF ()
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2")
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g ")
 
 # GFlags. The namespace patch is borrow from Ceres Solver (see license in
 # FindGflags.cmake)

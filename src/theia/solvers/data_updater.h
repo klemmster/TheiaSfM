@@ -14,7 +14,8 @@ namespace theia {
         DataUpdater () {};
         virtual ~DataUpdater () {};
 
-        virtual void UpdateData(Data &data, std::vector<size_t>& inlierSamplesetIndices,
+        virtual void UpdateData(Data &data,
+                std::vector<std::reference_wrapper<Datum> >& modelSampleset,
                 int num_iterations, double inlier_ratio,
                 int min_num_samples) = 0;
 

@@ -41,9 +41,10 @@ namespace theia {
 
 struct FeatureCorrespondence2D3D {
   Eigen::Vector2d feature;
+  Eigen::Vector2d feature1;
   Eigen::Vector3d world_point;
-  float distance;
-  float probability;
+  float distance = 0.f;
+  float probability = 0.f;
 };
 
 }  // namespace theia
