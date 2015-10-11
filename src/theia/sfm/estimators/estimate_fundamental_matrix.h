@@ -40,7 +40,7 @@
 
 #include "theia/matching/feature_correspondence.h"
 #include "theia/sfm/create_and_initialize_ransac_variant.h"
-#include "theia/sfm/pose/eight_point_fundamental_matrix.h"
+#include "theia/sfm/pose/seven_point_fundamental_matrix.h"
 #include "theia/sfm/pose/util.h"
 #include "theia/solvers/estimator.h"
 #include "theia/util/util.h"
@@ -54,26 +54,23 @@ class FundamentalMatrixEstimator
 public:
     FundamentalMatrixEstimator() {}
 
-    // 8 correspondences are needed to determine an fundamental matrix.
-    double SampleSize() const { return 8; }
+    // 7 correspondences are needed to determine an fundamental matrix.
+    double SampleSize() const { return 7; }
 
     // Estimates candidate fundamental matrices from correspondences.
     bool EstimateModel(std::vector<std::reference_wrapper<FeatureCorrespondence> >& correspondences,
         std::vector<Eigen::Matrix3d>* fundamental_matrices)
     {
         std::vector<Eigen::Vector2d> image1_points, image2_points;
-        for (int i = 0; i < 8; i++) {
+        for (int i = 0; i < 7; i++) {
             image1_points.emplace_back(correspondences[i].get().feature1);
             image2_points.emplace_back(correspondences[i].get().feature2);
         }
 
-        Eigen::Matrix3d fmatrix;
-        if (!NormalizedEightPointFundamentalMatrix(
-                image1_points, image2_points, &fmatrix)) {
+        if (!SevenPointFundamentalMatrix(
+                image1_points, image2_points, fundamental_matrices)) {
             return false;
         }
-
-        fundamental_matrices->emplace_back(fmatrix);
         return true;
     }
 

@@ -43,7 +43,8 @@ namespace theia {
 template <class Datum> class Sampler {
 public:
     explicit Sampler(const int min_num_samples)
-        : min_num_samples_(min_num_samples)
+        : current_iteration(0),
+          min_num_samples_(min_num_samples)
     {
     }
 
@@ -58,6 +59,9 @@ public:
             std::vector<std::reference_wrapper<Datum> >* subset) = 0;
 
     virtual void Update(const std::vector<double>& residuals, double inlier_ratio){};
+
+    size_t current_iteration = 0;
+    size_t max_iterations= std::numeric_limits<size_t>::max();
 
 protected:
     int min_num_samples_;

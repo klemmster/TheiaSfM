@@ -280,6 +280,8 @@ bool SampleConsensusEstimator<ModelEstimator>::Estimate(
        summary->num_iterations++) {
     // Sample subset. Proceed if successfully sampled.
     std::vector<std::reference_wrapper<Datum> > data_subset;
+    sampler_->current_iteration = summary->num_iterations;
+    sampler_->max_iterations = ransac_params_.max_iterations;
     if (!sampler_->Sample(data, &data_subset)) {
       continue;
     }
