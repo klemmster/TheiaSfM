@@ -46,20 +46,22 @@
 namespace theia {
 template <class ModelEstimator>
 class Ransac : public SampleConsensusEstimator<ModelEstimator> {
- public:
-  typedef typename ModelEstimator::Datum Datum;
-  typedef typename ModelEstimator::Model Model;
+   public:
+    typedef typename ModelEstimator::Datum Datum;
+    typedef typename ModelEstimator::Model Model;
+    typedef ModelEstimator Estimator;
 
-  Ransac(const RansacParameters& ransac_params, ModelEstimator& estimator)
-      : SampleConsensusEstimator<ModelEstimator>(ransac_params, estimator) {}
-  virtual ~Ransac() {}
+    Ransac(const RansacParameters& ransac_params, ModelEstimator& estimator)
+        : SampleConsensusEstimator<ModelEstimator>(ransac_params, estimator) {}
+    virtual ~Ransac() {}
 
-  // Initializes the random sampler and inlier support measurement.
-  bool Initialize() {
-    Sampler<Datum>* random_sampler =
-        new RandomSampler<Datum>(this->estimator_.SampleSize());
-    return SampleConsensusEstimator<ModelEstimator>::Initialize(random_sampler);
-  }
+    // Initializes the random sampler and inlier support measurement.
+    bool Initialize() {
+        Sampler<Datum>* random_sampler =
+            new RandomSampler<Datum>(this->estimator_.SampleSize());
+        return SampleConsensusEstimator<ModelEstimator>::Initialize(
+            random_sampler);
+    }
 };
 
 }  // namespace theia

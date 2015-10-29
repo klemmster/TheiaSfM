@@ -31,6 +31,7 @@
 //
 // Please contact the author of this library if you have any questions.
 // Author: Chris Sweeney (cmsweeney@cs.ucsb.edu)
+//
 
 #ifndef THEIA_SOLVERS_ESTIMATOR_H_
 #define THEIA_SOLVERS_ESTIMATOR_H_
@@ -51,67 +52,96 @@ namespace theia {
 // NOTE: RANSAC, ARRSAC, and other solvers work best if Datum and Model are
 // lightweight classes or structs.
 
-template <typename DatumType, typename ModelType> class Estimator {
- public:
-  typedef DatumType Datum;
-  typedef ModelType Model;
+template <typename DatumType, typename ModelType>
+class Estimator {
+   public:
+    typedef DatumType Datum;
+    typedef ModelType Model;
 
-  Estimator() {}
-  virtual ~Estimator() {}
+    Estimator() {}
+    virtual ~Estimator() {}
 
-  // Get the minimum number of samples needed to generate a model.
-  virtual double SampleSize() const = 0;
+    // Get the minimum number of samples needed to generate a model.
+    virtual double SampleSize() const = 0;
 
-  // Given a set of data points, estimate the model. Users should implement this
-  // function appropriately for the task being solved. Returns true for
-  // successful model estimation (and outputs model), false for failed
-  // estimation. Typically, this is a minimal set, but it is not required to be.
-  virtual bool EstimateModel(std::vector<std::reference_wrapper<Datum> >& data,
-                             std::vector<Model>* model) = 0;
+    // Given a set of data points, estimate the model. Users should implement
+    // this
+    // function appropriately for the task being solved. Returns true for
+    // successful model estimation (and outputs model), false for failed
+    // estimation. Typically, this is a minimal set, but it is not required to
+    // be.
+    virtual bool EstimateModel(
+        std::vector<std::reference_wrapper<Datum> >& data,
+        std::vector<Model>* model) = 0;
 
-  // Refine the model based on an updated subset of data, and a pre-computed
-  // model. Can be optionally implemented.
-  virtual bool RefineModel(const std::vector<Datum>& data, Model* model) const {
-    return true;
-  }
+    // Refine the model based on an updated subset of data, and a pre-computed
+    // model. Can be optionally implemented.
+    virtual bool RefineModel(const std::vector<Datum>& data,
+                             Model* model) const {
+        return true;
+    }
 
-  // Given a model and a data point, calculate the error. Users should implement
-  // this function appropriately for the task being solved.
-  virtual double Error(const Datum& data, const Model& model) const = 0;
+    // Given a model and a data point, calculate the error. Users should
+    // implement
+    // this function appropriately for the task being solved.
+    virtual double Error(const Datum& data, const Model& model) const = 0;
 
-  // Compute the residuals of many data points. By default this is just a loop
-  // that calls Error() on each data point, but this function can be useful if
-  // the errors of multiple points may be estimated simultanesously (e.g.,
-  // matrix multiplication to compute the reprojection error of many points at
-  // once).
-  virtual std::vector<double> Residuals(const std::vector<Datum>& data,
-                                        const Model& model) const {
-    std::vector<double> residuals(data.size());
+    // Compute the residuals of many data points. By default this is just a loop
+    // that calls Error() on each data point, but this function can be useful if
+    // the errors of multiple points may be estimated simultanesously (e.g.,
+    // matrix multiplication to compute the reprojection error of many points at
+    // once).
+    virtual std::vector<double> Residuals(const std::vector<Datum>& data,
+                                          const Model& model) const {
+        std::vector<double> residuals(data.size());
 #pragma omp parallel for
-    for (int i = 0; i < data.size(); i++) {
-      residuals[i] = Error(data[i], model);
+        for (int i = 0; i < data.size(); i++) {
+            residuals[i] = Error(data[i], model);
+        }
+        return residuals;
     }
-    return residuals;
-  }
 
-  // Returns the set inliers of the data set based on the error threshold
-  // provided.
-  std::vector<int> GetInliers(const std::vector<Datum>& data,
-                              const Model& model,
-                              double error_threshold) const {
-    std::vector<int> inliers;
-    inliers.reserve(data.size());
-    for (int i = 0; i < data.size(); i++) {
-      if (Error(data[i], model) < error_threshold) {
-        inliers.push_back(i);
-      }
+    // But bail out early bailing out early defaults to Msac
+    virtual double ComputeCost(const std::vector<Datum>& data,
+                               std::vector<size_t>& inlierIndices,
+                               const Model& model, double best_cost,
+                               double error_threshold) {
+        inlierIndices.reserve(data.size());
+
+        double cost_sum = 0.0;
+        for (size_t i = 0; i < data.size(); i++) {
+            double cost = std::min(Error(data[i], model), error_threshold);
+            if (cost < error_threshold) {
+                inlierIndices.push_back(i);
+            }
+            cost_sum += cost;
+            if (cost_sum > best_cost) {
+                return cost_sum;
+            }
+        }
+
+        return cost_sum;
     }
-    return inliers;
-  }
 
-  // Enable a quick check to see if the model is valid. This can be a geometric
-  // check or some other verification of the model structure.
-  virtual bool ValidModel(const Model& model) const { return true; }
+    // Returns the set inliers of the data set based on the error threshold
+    // provided.
+    std::vector<size_t> GetInliers(const std::vector<Datum>& data,
+                                   const Model& model,
+                                   double error_threshold) const {
+        std::vector<size_t> inliers;
+        inliers.reserve(data.size());
+        for (size_t i = 0; i < data.size(); i++) {
+            if (Error(data[i], model) < error_threshold) {
+                inliers.push_back(i);
+            }
+        }
+        return inliers;
+    }
+
+    // Enable a quick check to see if the model is valid. This can be a
+    // geometric
+    // check or some other verification of the model structure.
+    virtual bool ValidModel(const Model& model) const { return true; }
 };
 
 }  // namespace theia

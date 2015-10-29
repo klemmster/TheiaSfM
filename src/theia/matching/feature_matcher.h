@@ -275,7 +275,7 @@ void FeatureMatcher<DistanceMetric>::MatchAndVerifyImagePairs(
     const CameraIntrinsicsPrior intrinsics2 = FindWithDefault(
         intrinsics_, image2_index, CameraIntrinsicsPrior());
     // If the image pair passes two view verification then
-    std::vector<int> inliers;
+    std::vector<size_t> inliers;
     // Do not add this image pair as a verified match if the verification does
     // not pass.
     if (!VerifyTwoViewMatches(verification_options_,

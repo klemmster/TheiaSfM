@@ -119,7 +119,7 @@ bool EstimateTwoViewInfoCalibrated(
     const CameraIntrinsicsPrior& intrinsics2,
     const std::vector<FeatureCorrespondence>& correspondences,
     TwoViewInfo* twoview_info,
-    std::vector<int>* inlier_indices) {
+    std::vector<size_t>* inlier_indices) {
   // Normalize features w.r.t focal length.
   std::vector<FeatureCorrespondence> normalized_correspondences;
   NormalizeFeatures(intrinsics1,
@@ -167,7 +167,7 @@ bool EstimateTwoViewInfoUncalibrated(
     const CameraIntrinsicsPrior& intrinsics2,
     const std::vector<FeatureCorrespondence>& correspondences,
     TwoViewInfo* twoview_info,
-    std::vector<int>* inlier_indices) {
+    std::vector<size_t>* inlier_indices) {
   // Normalize features w.r.t principal point.
   std::vector<FeatureCorrespondence> centered_correspondences;
   NormalizeFeatures(intrinsics1,
@@ -216,7 +216,7 @@ bool EstimateTwoViewInfo(
     const CameraIntrinsicsPrior& intrinsics2,
     const std::vector<FeatureCorrespondence>& correspondences,
     TwoViewInfo* twoview_info,
-    std::vector<int>* inlier_indices) {
+    std::vector<size_t>* inlier_indices) {
   CHECK_NOTNULL(twoview_info);
   CHECK_NOTNULL(inlier_indices)->clear();
 

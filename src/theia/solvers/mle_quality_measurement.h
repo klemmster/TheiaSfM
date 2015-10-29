@@ -57,10 +57,10 @@ class MLEQualityMeasurement : public QualityMeasurement {
   // Given the residuals, assess a quality metric for the data. Returns the
   // quality assessment and outputs a vector of bools indicating the inliers.
   double ComputeCost(const std::vector<double>& residuals,
-                     std::vector<int>* inliers, bool bail_out=false) override {
+                     std::vector<size_t>* inliers, bool bail_out=false) override {
     inliers->reserve(residuals.size());
     double mle_score = 0.0;
-    for (int i = 0; i < residuals.size(); i++) {
+    for (size_t i = 0; i < residuals.size(); i++) {
       if (residuals[i] < error_thresh_) {
         mle_score += residuals[i];
         inliers->emplace_back(i);

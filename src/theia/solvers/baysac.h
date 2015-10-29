@@ -47,20 +47,23 @@
 namespace theia {
 template <class ModelEstimator>
 class BaySac : public SampleConsensusEstimator<ModelEstimator> {
- public:
-  typedef typename ModelEstimator::Datum Datum;
-  typedef typename ModelEstimator::Model Model;
+   public:
+    typedef typename ModelEstimator::Datum Datum;
+    typedef typename ModelEstimator::Model Model;
+    typedef ModelEstimator Estimator;
 
-  BaySac(const RansacParameters& ransac_params, ModelEstimator& estimator)
-      : SampleConsensusEstimator<ModelEstimator>(ransac_params, estimator) {}
-  ~BaySac() {}
+    BaySac(const RansacParameters& ransac_params, ModelEstimator& estimator)
+        : SampleConsensusEstimator<ModelEstimator>(ransac_params, estimator) {}
+    ~BaySac() {}
 
-  bool Initialize() {
-    Sampler<Datum>* random_sampler =
-        new BaySacSampler<Datum>(this->estimator_.SampleSize());
-    this->data_updater_ = std::unique_ptr<DataUpdater<Datum> >(new BaySacDataUpdater<Datum>());
-    return SampleConsensusEstimator<ModelEstimator>::Initialize(random_sampler);
-  }
+    bool Initialize() {
+        Sampler<Datum>* random_sampler =
+            new BaySacSampler<Datum>(this->estimator_.SampleSize());
+        this->data_updater_ = std::unique_ptr<DataUpdater<Datum> >(
+            new BaySacDataUpdater<Datum>());
+        return SampleConsensusEstimator<ModelEstimator>::Initialize(
+            random_sampler);
+    }
 };
 
 }  // namespace theia

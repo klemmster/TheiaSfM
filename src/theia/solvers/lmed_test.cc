@@ -130,7 +130,7 @@ TEST_F(LmedTest, ComputingQualityMeasureOfCorrectModel) {
   for (int i = 0; i < residuals.size(); ++i) {
     residuals[i] = line_estimator.Error(input_points->at(i), correct_line);
   }
-  std::vector<int> inliers;
+  std::vector<size_t> inliers;
   EXPECT_LT(lmed_quality_measurement.ComputeCost(residuals, &inliers), 0.5);
   const double inlier_ratio = static_cast<double>(inliers.size()) /
                               static_cast<double>(residuals.size());

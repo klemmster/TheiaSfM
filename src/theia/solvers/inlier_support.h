@@ -53,10 +53,10 @@ class InlierSupport : public QualityMeasurement {
   // Count the number of inliers in the data and return the cost such that lower
   // cost is better.
   double ComputeCost(const std::vector<double>& residuals,
-                     std::vector<int>* inliers, bool bail_out=false) override {
+                     std::vector<size_t>* inliers, bool bail_out=false) override {
     inliers->reserve(residuals.size());
     size_t num_outliers = 0;
-    for (int i = 0; i < residuals.size(); i++) {
+    for (size_t i = 0; i < residuals.size(); i++) {
       if (residuals[i] < this->error_thresh_) {
         inliers->emplace_back(i);
       } else {

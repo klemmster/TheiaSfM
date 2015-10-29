@@ -50,19 +50,21 @@ namespace theia {
 // quality at index 0).
 template <class ModelEstimator>
 class Prosac : public SampleConsensusEstimator<ModelEstimator> {
- public:
-  typedef typename ModelEstimator::Datum Datum;
-  typedef typename ModelEstimator::Model Model;
+   public:
+    typedef typename ModelEstimator::Datum Datum;
+    typedef typename ModelEstimator::Model Model;
+    typedef ModelEstimator Estimator;
 
-  Prosac(const RansacParameters& ransac_params, ModelEstimator& estimator)
-      : SampleConsensusEstimator<ModelEstimator>(ransac_params, estimator) {}
-  ~Prosac() {}
+    Prosac(const RansacParameters& ransac_params, ModelEstimator& estimator)
+        : SampleConsensusEstimator<ModelEstimator>(ransac_params, estimator) {}
+    ~Prosac() {}
 
-  bool Initialize() {
-    Sampler<Datum>* prosac_sampler =
-        new ProsacSampler<Datum>(this->estimator_.SampleSize());
-    return SampleConsensusEstimator<ModelEstimator>::Initialize(prosac_sampler);
-  }
+    bool Initialize() {
+        Sampler<Datum>* prosac_sampler =
+            new ProsacSampler<Datum>(this->estimator_.SampleSize());
+        return SampleConsensusEstimator<ModelEstimator>::Initialize(
+            prosac_sampler);
+    }
 };
 }  // namespace theia
 

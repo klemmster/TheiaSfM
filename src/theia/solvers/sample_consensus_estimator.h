@@ -56,133 +56,140 @@ namespace theia {
 // only variable that must be explitly set, and the rest can be used with the
 // default values unless other values are desired.
 struct RansacParameters {
-  RansacParameters()
-      : error_thresh(-1),
-        failure_probability(0.01),
-        min_inlier_ratio(0),
-        min_iterations(100),
-        max_iterations(std::numeric_limits<int>::max()),
-        use_mle(false),
-        use_Tdd_test(false),
-        bail_out(false) {}
+    RansacParameters()
+        : error_thresh(-1),
+          failure_probability(0.01),
+          min_inlier_ratio(0),
+          min_iterations(100),
+          max_iterations(std::numeric_limits<int>::max()),
+          use_mle(false),
+          use_Tdd_test(false),
+          bail_out(false) {}
 
-  // Error threshold to determin inliers for RANSAC (e.g., squared reprojection
-  // error). This is what will be used by the estimator to determine inliers.
-  double error_thresh;
+    // Error threshold to determin inliers for RANSAC (e.g., squared
+    // reprojection
+    // error). This is what will be used by the estimator to determine inliers.
+    double error_thresh;
 
-  // The failure probability of RANSAC. Set to 0.01 means that RANSAC has a 1%
-  // chance of missing the correct pose.
-  double failure_probability;
+    // The failure probability of RANSAC. Set to 0.01 means that RANSAC has a 1%
+    // chance of missing the correct pose.
+    double failure_probability;
 
-  // The minimal assumed inlier ratio, i.e., it is assumed that the given set
-  // of correspondences has an inlier ratio of at least min_inlier_ratio.
-  // This is required to limit the number of RANSAC iteratios.
-  double min_inlier_ratio;
+    // The minimal assumed inlier ratio, i.e., it is assumed that the given set
+    // of correspondences has an inlier ratio of at least min_inlier_ratio.
+    // This is required to limit the number of RANSAC iteratios.
+    double min_inlier_ratio;
 
-  // The minimum number of iterations required before exiting.
-  int min_iterations;
+    // The minimum number of iterations required before exiting.
+    int min_iterations;
 
-  // Another way to specify the maximal number of RANSAC iterations. In effect,
-  // the maximal number of iterations is set to min(max_ransac_iterations, T),
-  // where T is the number of iterations corresponding to min_inlier_ratio.
-  // This variable is useful if RANSAC is to be applied iteratively, i.e.,
-  // first applying RANSAC with an min_inlier_ratio of x, then with one
-  // of x-y and so on, and we want to avoid repeating RANSAC iterations.
-  // However, the preferable way to limit the number of RANSAC iterations is
-  // to set min_inlier_ratio and leave max_ransac_iterations to its default
-  // value.
-  // Per default, this variable is set to std::numeric_limits<int>::max().
-  int max_iterations;
+    // Another way to specify the maximal number of RANSAC iterations. In
+    // effect,
+    // the maximal number of iterations is set to min(max_ransac_iterations, T),
+    // where T is the number of iterations corresponding to min_inlier_ratio.
+    // This variable is useful if RANSAC is to be applied iteratively, i.e.,
+    // first applying RANSAC with an min_inlier_ratio of x, then with one
+    // of x-y and so on, and we want to avoid repeating RANSAC iterations.
+    // However, the preferable way to limit the number of RANSAC iterations is
+    // to set min_inlier_ratio and leave max_ransac_iterations to its default
+    // value.
+    // Per default, this variable is set to std::numeric_limits<int>::max().
+    int max_iterations;
 
-  // Instead of the standard inlier count, use the Maximum Likelihood Estimate
-  // (MLE) to determine the best solution. Inliers are weighted by their error
-  // and outliers count as a constant penalty.
-  bool use_mle;
+    // Instead of the standard inlier count, use the Maximum Likelihood Estimate
+    // (MLE) to determine the best solution. Inliers are weighted by their error
+    // and outliers count as a constant penalty.
+    bool use_mle;
 
-  // Whether to use the T_{d,d}, with d=1, test proposed in
-  // Chum, O. and Matas, J.: Randomized RANSAC and T(d,d) test, BMVC 2002.
-  // After computing the pose, RANSAC selects one match at random and evaluates
-  // all poses. If the point is an outlier to one pose, the corresponding pose
-  // is rejected. Notice that if the pose solver returns multiple poses, then
-  // at most one pose is correct. If the selected match is correct, then only
-  // the correct pose will pass the test. Per default, the test is disabled.
-  //
-  // NOTE: Not currently implemented!
-  bool use_Tdd_test;
+    // Whether to use the T_{d,d}, with d=1, test proposed in
+    // Chum, O. and Matas, J.: Randomized RANSAC and T(d,d) test, BMVC 2002.
+    // After computing the pose, RANSAC selects one match at random and
+    // evaluates
+    // all poses. If the point is an outlier to one pose, the corresponding pose
+    // is rejected. Notice that if the pose solver returns multiple poses, then
+    // at most one pose is correct. If the selected match is correct, then only
+    // the correct pose will pass the test. Per default, the test is disabled.
+    //
+    // NOTE: Not currently implemented!
+    bool use_Tdd_test;
 
-  // Instead of Computing cost for all residiuals, exit early (bail out) if
-  // the current solution can't get better then the current best hypothesis
-  // as proposed in
-  // Capel, D. P. An Effective Bail-out Test for RANSAC Consensus Scoring. BMVC, 2005
-  bool bail_out;
+    // Instead of Computing cost for all residiuals, exit early (bail out) if
+    // the current solution can't get better then the current best hypothesis
+    // as proposed in
+    // Capel, D. P. An Effective Bail-out Test for RANSAC Consensus Scoring.
+    // BMVC, 2005
+    bool bail_out;
 };
 
 // A struct to hold useful outputs of Ransac-like methods.
 struct RansacSummary {
-  // Contains the indices of all inliers.
-  std::vector<int> inliers;
+    // Contains the indices of all inliers.
+    std::vector<size_t> inliers;
 
-  // The number of iterations performed before stopping RANSAC.
-  int num_iterations;
+    // The number of iterations performed before stopping RANSAC.
+    size_t num_iterations;
 
-  // The confidence in the solution.
-  double confidence;
+    // The confidence in the solution.
+    double confidence;
 };
 
-template <class ModelEstimator> class SampleConsensusEstimator {
- public:
-  typedef typename ModelEstimator::Datum Datum;
-  typedef typename ModelEstimator::Model Model;
+template <class ModelEstimator>
+class SampleConsensusEstimator {
+   public:
+    typedef typename ModelEstimator::Datum Datum;
+    typedef typename ModelEstimator::Model Model;
 
-  SampleConsensusEstimator(const RansacParameters& ransac_params,
-                           ModelEstimator& estimator);
+    SampleConsensusEstimator(const RansacParameters& ransac_params,
+                             ModelEstimator& estimator);
 
-  virtual bool Initialize() { return true; }
+    virtual bool Initialize() { return true; }
 
-  virtual ~SampleConsensusEstimator() {}
+    virtual ~SampleConsensusEstimator() {}
 
-  // Computes the best-fitting model using RANSAC. Returns false if RANSAC
-  // calculation fails and true (with the best_model output) if successful.
-  // Params:
-  //   data: the set from which to sample
-  //   estimator: The estimator used to estimate the model based on the Datum
-  //     and Model type
-  //   best_model: The output parameter that will be filled with the best model
-  //     estimated from RANSAC
-  virtual bool Estimate(std::vector<Datum>& data,
-                        Model* best_model,
-                        RansacSummary* summary);
+    // Computes the best-fitting model using RANSAC. Returns false if RANSAC
+    // calculation fails and true (with the best_model output) if successful.
+    // Params:
+    //   data: the set from which to sample
+    //   estimator: The estimator used to estimate the model based on the Datum
+    //     and Model type
+    //   best_model: The output parameter that will be filled with the best
+    //   model
+    //     estimated from RANSAC
+    virtual bool Estimate(std::vector<Datum>& data, Model* best_model,
+                          RansacSummary* summary);
 
- protected:
-  // This method is called from derived classes to set up the sampling scheme
-  // and the method for computing inliers. It must be called by derived classes
-  // unless they override the Estimate(...) method. The method for computing
-  // inliers (standar inlier support or MLE) is determined by the ransac params.
-  //
-  // sampler: The class that instantiates the sampling strategy for this
-  //   particular type of sampling consensus.
-  bool Initialize(Sampler<Datum>* sampler);
+   protected:
+    // This method is called from derived classes to set up the sampling scheme
+    // and the method for computing inliers. It must be called by derived
+    // classes
+    // unless they override the Estimate(...) method. The method for computing
+    // inliers (standar inlier support or MLE) is determined by the ransac
+    // params.
+    //
+    // sampler: The class that instantiates the sampling strategy for this
+    //   particular type of sampling consensus.
+    bool Initialize(Sampler<Datum>* sampler);
 
-  // Computes the maximum number of iterations required to ensure the inlier
-  // ratio is the best with a probability corresponding to log_failure_prob.
-  int ComputeMaxIterations(const double min_sample_size,
-                           const double inlier_ratio,
-                           const double log_failure_prob) const;
+    // Computes the maximum number of iterations required to ensure the inlier
+    // ratio is the best with a probability corresponding to log_failure_prob.
+    int ComputeMaxIterations(const double min_sample_size,
+                             const double inlier_ratio,
+                             const double log_failure_prob) const;
 
-  // The sampling strategy.
-  std::unique_ptr<Sampler<Datum> > sampler_;
+    // The sampling strategy.
+    std::unique_ptr<Sampler<Datum>> sampler_;
 
-  // The quality metric for the estimated model and data.
-  std::unique_ptr<QualityMeasurement> quality_measurement_;
+    // The quality metric for the estimated model and data.
+    std::unique_ptr<QualityMeasurement> quality_measurement_;
 
-  // Update Data
-  std::unique_ptr<DataUpdater<Datum>> data_updater_ = nullptr;
+    // Update Data
+    std::unique_ptr<DataUpdater<Datum>> data_updater_ = nullptr;
 
-  // Ransac parameters (see above struct).
-  const RansacParameters& ransac_params_;
+    // Ransac parameters (see above struct).
+    const RansacParameters& ransac_params_;
 
-  // Estimator to use for generating models.
-  ModelEstimator& estimator_;
+    // Estimator to use for generating models.
+    ModelEstimator& estimator_;
 };
 
 // --------------------------- Implementation --------------------------------//
@@ -191,165 +198,175 @@ template <class ModelEstimator>
 SampleConsensusEstimator<ModelEstimator>::SampleConsensusEstimator(
     const RansacParameters& ransac_params, ModelEstimator& estimator)
     : ransac_params_(ransac_params), estimator_(estimator) {
-  CHECK_GT(ransac_params.error_thresh, 0)
-      << "Error threshold must be set to greater than zero";
-  CHECK_LE(ransac_params.min_inlier_ratio, 1.0);
-  CHECK_GE(ransac_params.min_inlier_ratio, 0.0);
-  CHECK_LT(ransac_params.failure_probability, 1.0);
-  CHECK_GT(ransac_params.failure_probability, 0.0);
-  CHECK_GE(ransac_params.max_iterations, ransac_params.min_iterations);
+    CHECK_GT(ransac_params.error_thresh, 0)
+        << "Error threshold must be set to greater than zero";
+    CHECK_LE(ransac_params.min_inlier_ratio, 1.0);
+    CHECK_GE(ransac_params.min_inlier_ratio, 0.0);
+    CHECK_LT(ransac_params.failure_probability, 1.0);
+    CHECK_GT(ransac_params.failure_probability, 0.0);
+    CHECK_GE(ransac_params.max_iterations, ransac_params.min_iterations);
 }
 
 template <class ModelEstimator>
 bool SampleConsensusEstimator<ModelEstimator>::Initialize(
     Sampler<Datum>* sampler) {
-  CHECK_NOTNULL(sampler);
-  sampler_.reset(sampler);
-  if (!sampler_->Initialize()) {
-    return false;
-  }
+    CHECK_NOTNULL(sampler);
+    sampler_.reset(sampler);
+    if (!sampler_->Initialize()) {
+        return false;
+    }
 
-  if (ransac_params_.use_mle) {
-    quality_measurement_.reset(
-        new MLEQualityMeasurement(ransac_params_.error_thresh));
-  } else {
-    quality_measurement_.reset(
-        new InlierSupport(ransac_params_.error_thresh));
-  }
-  return quality_measurement_->Initialize();
+    if (ransac_params_.use_mle) {
+        quality_measurement_.reset(
+            new MLEQualityMeasurement(ransac_params_.error_thresh));
+    } else {
+        quality_measurement_.reset(
+            new InlierSupport(ransac_params_.error_thresh));
+    }
+    return quality_measurement_->Initialize();
 }
 
 template <class ModelEstimator>
 int SampleConsensusEstimator<ModelEstimator>::ComputeMaxIterations(
-    const double min_sample_size,
-    const double inlier_ratio,
+    const double min_sample_size, const double inlier_ratio,
     const double log_failure_prob) const {
-  CHECK_GT(inlier_ratio, 0.0);
-  if (inlier_ratio == 1.0) {
-    return ransac_params_.min_iterations;
-  }
+    CHECK_GT(inlier_ratio, 0.0);
+    if (inlier_ratio == 1.0) {
+        return ransac_params_.min_iterations;
+    }
 
-  // If we use the T_{1,1} test, we have to adapt the number of samples
-  // that needs to be generated accordingly since we use another
-  // match for verification and a correct match is selected with probability
-  // inlier_ratio.
-  const double num_samples =
-      ransac_params_.use_Tdd_test ? min_sample_size + 1 : min_sample_size;
+    // If we use the T_{1,1} test, we have to adapt the number of samples
+    // that needs to be generated accordingly since we use another
+    // match for verification and a correct match is selected with probability
+    // inlier_ratio.
+    const double num_samples =
+        ransac_params_.use_Tdd_test ? min_sample_size + 1 : min_sample_size;
 
-  const double log_prob = log(1.0 - pow(inlier_ratio, num_samples))
-      - std::numeric_limits<double>::epsilon();
+    const double log_prob = log(1.0 - pow(inlier_ratio, num_samples)) -
+                            std::numeric_limits<double>::epsilon();
 
-  // NOTE: For very low inlier ratios the number of iterations can actually
-  // exceed the maximum value for an int. We need to keep this variable as a
-  // double until we do the check below against the minimum and maximum number
-  // of iterations in the parameter settings.
-  const double num_iterations = log_failure_prob / log_prob;
+    // NOTE: For very low inlier ratios the number of iterations can actually
+    // exceed the maximum value for an int. We need to keep this variable as a
+    // double until we do the check below against the minimum and maximum number
+    // of iterations in the parameter settings.
+    const double num_iterations = log_failure_prob / log_prob;
 
-  return std::max(static_cast<double>(ransac_params_.min_iterations),
-                  std::min(num_iterations,
-                           static_cast<double>(ransac_params_.max_iterations)));
+    return std::max(
+        static_cast<double>(ransac_params_.min_iterations),
+        std::min(num_iterations,
+                 static_cast<double>(ransac_params_.max_iterations)));
 }
 
 template <class ModelEstimator>
 bool SampleConsensusEstimator<ModelEstimator>::Estimate(
-    std::vector<Datum>& data,
-    Model* best_model,
-    RansacSummary* summary) {
-  CHECK_GT(data.size(), 0)
-      << "Cannot perform estimation with 0 data measurements!";
-  CHECK_NOTNULL(sampler_.get());
-  CHECK_NOTNULL(quality_measurement_.get());
-  CHECK_NOTNULL(summary);
-  CHECK_NOTNULL(best_model);
+    std::vector<Datum>& data, Model* best_model, RansacSummary* summary) {
+    CHECK_GT(data.size(), 0)
+        << "Cannot perform estimation with 0 data measurements!";
+    CHECK_NOTNULL(sampler_.get());
+    CHECK_NOTNULL(quality_measurement_.get());
+    CHECK_NOTNULL(summary);
+    CHECK_NOTNULL(best_model);
 
-  const double log_failure_prob = log(ransac_params_.failure_probability);
-  double best_cost = std::numeric_limits<double>::max();
-  int max_iterations = ransac_params_.max_iterations;
+    const double log_failure_prob = log(ransac_params_.failure_probability);
+    double best_cost = std::numeric_limits<double>::max();
+    int max_iterations = ransac_params_.max_iterations;
 
-  // Set the max iterations if the inlier ratio is set.
-  if (ransac_params_.min_inlier_ratio > 0) {
-    max_iterations = std::min(
-        ComputeMaxIterations(estimator_.SampleSize(),
-                             ransac_params_.min_inlier_ratio,
-                             log_failure_prob),
-        ransac_params_.max_iterations);
-  }
-
-  for (summary->num_iterations = 0;
-       summary->num_iterations < max_iterations;
-       summary->num_iterations++) {
-    // Sample subset. Proceed if successfully sampled.
-    std::vector<std::reference_wrapper<Datum> > data_subset;
-    sampler_->current_iteration = summary->num_iterations;
-    sampler_->max_iterations = ransac_params_.max_iterations;
-    if (!sampler_->Sample(data, &data_subset)) {
-      continue;
+    // Set the max iterations if the inlier ratio is set.
+    if (ransac_params_.min_inlier_ratio > 0) {
+        max_iterations =
+            std::min(ComputeMaxIterations(estimator_.SampleSize(),
+                                          ransac_params_.min_inlier_ratio,
+                                          log_failure_prob),
+                     ransac_params_.max_iterations);
     }
 
-    // Estimate model from subset. Skip to next iteration if the model fails to
-    // estimate.
-    std::vector<Model> temp_models;
-    if (!estimator_.EstimateModel(data_subset, &temp_models)) {
-      continue;
-    }
-
-    // Calculate residuals from estimated model.
-    for (const Model& temp_model : temp_models) {
-      const std::vector<double> residuals =
-          estimator_.Residuals(data, temp_model);
-
-      // Determine cost of the generated model.
-      std::vector<int> inlier_indices;
-      const double sample_cost =
-          quality_measurement_->ComputeCost(residuals, &inlier_indices,
-          ransac_params_.bail_out);
-      const double inlier_ratio = static_cast<double>(inlier_indices.size()) /
-                                  static_cast<double>(data.size());
-
-      VLOG(3) << "Inlier ratio: " << inlier_ratio;
-      VLOG(3) << "num_iterations: "  << summary->num_iterations;
-
-      if(data_updater_) {
-        data_updater_->UpdateData(const_cast<std::vector<Datum>&>(data),
-                data_subset, summary->num_iterations,
-                inlier_ratio, estimator_.SampleSize());
-      };
-
-      // Update best model if error is the best we have seen.
-      if (sample_cost < best_cost) {
-        *best_model = temp_model;
-        best_cost = sample_cost;
-
-        if (inlier_ratio <
-            estimator_.SampleSize() / static_cast<double>(data.size())) {
-          continue;
+    for (summary->num_iterations = 0; summary->num_iterations < max_iterations;
+         summary->num_iterations++) {
+        // Sample subset. Proceed if successfully sampled.
+        std::vector<std::reference_wrapper<Datum>> data_subset;
+        sampler_->current_iteration = summary->num_iterations;
+        sampler_->max_iterations = ransac_params_.max_iterations;
+        if (!sampler_->Sample(data, &data_subset)) {
+            continue;
         }
 
-        // A better cost does not guarantee a higher inlier ratio (i.e, the MLE
-        // case) so we only update the max iterations if the number decreases.
-        max_iterations = std::min(ComputeMaxIterations(estimator_.SampleSize(),
-                                                       inlier_ratio,
-                                                       log_failure_prob),
-                                  max_iterations);
+        // Estimate model from subset. Skip to next iteration if the model fails
+        // to
+        // estimate.
+        std::vector<Model> temp_models;
+        if (!estimator_.EstimateModel(data_subset, &temp_models)) {
+            continue;
+        }
 
-        VLOG(3) << "Inlier ratio = " << inlier_ratio
-                << " and max number of iterations = " << max_iterations;
-      }
+        // Calculate residuals from estimated model.
+        for (const Model& temp_model : temp_models) {
+            std::vector<size_t> inlier_indices;
+            double sample_cost = std::numeric_limits<double>::max();
+
+            if (ransac_params_.bail_out) {
+                // Default is MSac Bail
+                sample_cost = estimator_.ComputeCost(
+                    data, inlier_indices, temp_model, best_cost,
+                    this->ransac_params_.error_thresh);
+            } else {
+                const std::vector<double> residuals =
+                    estimator_.Residuals(data, temp_model);
+
+                // Determine cost of the generated model.
+                sample_cost = quality_measurement_->ComputeCost(
+                    residuals, &inlier_indices, ransac_params_.bail_out);
+            }
+
+            const double inlier_ratio =
+                static_cast<double>(inlier_indices.size()) /
+                static_cast<double>(data.size());
+            VLOG(3) << "Inlier ratio: " << inlier_ratio;
+            VLOG(3) << "num_iterations: " << summary->num_iterations;
+
+            if (data_updater_) {
+                data_updater_->UpdateData(const_cast<std::vector<Datum>&>(data),
+                                          data_subset, summary->num_iterations,
+                                          inlier_ratio,
+                                          estimator_.SampleSize());
+            };
+
+            // Update best model if error is the best we have seen.
+            if (sample_cost < best_cost) {
+                *best_model = temp_model;
+                best_cost = sample_cost;
+
+                if (inlier_ratio < estimator_.SampleSize() /
+                                       static_cast<double>(data.size())) {
+                    continue;
+                }
+
+                // A better cost does not guarantee a higher inlier ratio (i.e,
+                // the MLE
+                // case) so we only update the max iterations if the number
+                // decreases.
+                max_iterations = std::min(
+                    ComputeMaxIterations(estimator_.SampleSize(), inlier_ratio,
+                                         log_failure_prob),
+                    max_iterations);
+
+                VLOG(3) << "Inlier ratio = " << inlier_ratio
+                        << " and max number of iterations = " << max_iterations;
+            }
+        }
     }
-  }
 
-  // Compute the final inliers for the best model.
-  const std::vector<double> best_residuals =
-      estimator_.Residuals(data, *best_model);
-  quality_measurement_->ComputeCost(best_residuals, &summary->inliers);
+    // Compute the final inliers for the best model.
+    const std::vector<double> best_residuals =
+        estimator_.Residuals(data, *best_model);
+    quality_measurement_->ComputeCost(best_residuals, &summary->inliers);
 
-  const double inlier_ratio =
-      static_cast<double>(summary->inliers.size()) / data.size();
-  summary->confidence =
-      1.0 - pow(1.0 - pow(inlier_ratio, estimator_.SampleSize()),
-                summary->num_iterations);
+    const double inlier_ratio =
+        static_cast<double>(summary->inliers.size()) / data.size();
+    summary->confidence =
+        1.0 - pow(1.0 - pow(inlier_ratio, estimator_.SampleSize()),
+                  summary->num_iterations);
 
-  return true;
+    return true;
 }
 
 }  // namespace theia

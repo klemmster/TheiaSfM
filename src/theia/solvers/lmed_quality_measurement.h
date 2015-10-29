@@ -56,7 +56,7 @@ class LmedQualityMeasurement : public QualityMeasurement {
   // The cost is the squared residual. LMed minimizes the median of the squared
   // residuals over the hypotheses.
   double ComputeCost(const std::vector<double>& residuals,
-                     std::vector<int>* inliers, bool bail_out=false) override {
+                     std::vector<size_t>* inliers, bool bail_out=false) override {
     inliers->reserve(residuals.size());
     const double median = CalculateMedianOfSquaredResiduals(residuals);
     CalculateInliers(residuals, median, min_sample_size_, inliers);
@@ -103,14 +103,14 @@ class LmedQualityMeasurement : public QualityMeasurement {
   void CalculateInliers(const std::vector<double>& residuals,
                         const double median,
                         const int min_num_samples,
-                        std::vector<int>* inliers) {
+                        std::vector<size_t>* inliers) {
     // The median holds a squared residual. Thus, we take the squared root.
     // The threshold calculated here is computed based on a heuristic that
     // OpenCV uses. See modules/calib3d/src/ptsetreg.cpp
     const double inlier_threshold = 2.5 * 1.4826 *
         (1 + 5.0 / (residuals.size() - min_num_samples)) * std::sqrt(median);
     const double squared_inlier_threshold = inlier_threshold * inlier_threshold;
-    for (int i = 0; i < residuals.size(); i++) {
+    for (size_t i = 0; i < residuals.size(); i++) {
       if ((residuals[i] * residuals[i]) < squared_inlier_threshold) {
         inliers->emplace_back(i);
       }

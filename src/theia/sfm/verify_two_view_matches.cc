@@ -110,7 +110,7 @@ bool VerifyTwoViewMatches(
     const CameraIntrinsicsPrior& intrinsics2,
     const std::vector<FeatureCorrespondence>& correspondences,
     TwoViewInfo* twoview_info,
-    std::vector<int>* inlier_indices) {
+    std::vector<size_t>* inlier_indices) {
   if (correspondences.size() < options.min_num_inlier_matches) {
     return false;
   }
@@ -135,7 +135,7 @@ bool VerifyTwoViewMatches(
   // Bundle adjustment (optional).
   if (options.bundle_adjustment) {
     std::vector<FeatureCorrespondence> inliers(inlier_indices->size());
-    for (int i = 0; i < inliers.size(); i++) {
+    for (size_t i = 0; i < inliers.size(); i++) {
       inliers[i] = correspondences[inlier_indices->at(i)];
     }
     if (!BundleAdjustRelativePose(inliers,

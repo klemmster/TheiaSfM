@@ -80,7 +80,7 @@ bool EstimateTwoViewInfo(
     const CameraIntrinsicsPrior& intrinsics2,
     const std::vector<FeatureCorrespondence>& correspondences,
     TwoViewInfo* twoview_info,
-    std::vector<int>* inlier_indices);
+    std::vector<size_t>* inlier_indices);
 
 }  // namespace theia
 
