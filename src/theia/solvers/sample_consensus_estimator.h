@@ -41,6 +41,7 @@
 #include <limits>
 #include <memory>
 #include <vector>
+#include <iostream>
 
 #include "theia/solvers/estimator.h"
 #include "theia/solvers/inlier_support.h"
@@ -314,7 +315,7 @@ bool SampleConsensusEstimator<ModelEstimator>::Estimate(
 
                 // Determine cost of the generated model.
                 sample_cost = quality_measurement_->ComputeCost(
-                    residuals, &inlier_indices, ransac_params_.bail_out);
+                    residuals, &inlier_indices, false);
             }
 
             const double inlier_ratio =
